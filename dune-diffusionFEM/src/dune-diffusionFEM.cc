@@ -16,6 +16,9 @@ int main(int argc, char** argv)
   catch (Dune::Exception &e){
     std::cerr << "Dune reported error: " << e << std::endl;
   }
+  catch (std::exception &e){
+    std::cerr << "STL reported error: " << e.what() << std::endl;
+  }
   catch (...){
     std::cerr << "Unknown exception thrown!" << std::endl;
   }
