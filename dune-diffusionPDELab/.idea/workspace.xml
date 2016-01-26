@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
+    <generated>
+      <config projectName="dune-diffusionPDELab" targetName="NightlyTest" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyMemCheck" />
+      <config projectName="dune-diffusionPDELab" targetName="doxygen_install" />
+      <config projectName="dune-diffusionPDELab" targetName="Continuous" />
+      <config projectName="dune-diffusionPDELab" targetName="Nightly" />
+      <config projectName="dune-diffusionPDELab" targetName="headercheck" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousBuild" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousMemCheck" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousTest" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyUpdate" />
+      <config projectName="dune-diffusionPDELab" targetName="Experimental" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalUpdate" />
+      <config projectName="dune-diffusionPDELab" targetName="doc" />
+      <config projectName="dune-diffusionPDELab" targetName="doxygen_dune-diffusionPDELab" />
+      <config projectName="dune-diffusionPDELab" targetName="Doxyfile" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalSubmit" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousCoverage" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyConfigure" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyStart" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalConfigure" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyMemoryCheck" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalTest" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalMemCheck" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousUpdate" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalBuild" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyCoverage" />
+      <config projectName="dune-diffusionPDELab" targetName="dune-diffusionPDELab" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousSubmit" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousStart" />
+      <config projectName="dune-diffusionPDELab" targetName="ContinuousConfigure" />
+      <config projectName="dune-diffusionPDELab" targetName="OUTPUT" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalCoverage" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlyBuild" />
+      <config projectName="dune-diffusionPDELab" targetName="ExperimentalStart" />
+      <config projectName="dune-diffusionPDELab" targetName="NightlySubmit" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="false" GENERATION_OPTIONS="-D CMAKE_CXX_COMPILER=/usr/bin/clang++" GENERATION_PASS_SYSTEM_ENVIRONMENT="true" BUILD_OUTPUT_DIR="$PROJECT_DIR$/../../build/DiffusionTest/dune-diffusionPDELab">
+    <ADDITIONAL_GENERATION_ENVIRONMENT>
+      <envs>
+        <env name="CMAKE_CXX_COMPILER" value="/usr/bin/clang++" />
+        <env name="CMAKE_C_COMPILER" value="/usr/bin/clang" />
+      </envs>
+    </ADDITIONAL_GENERATION_ENVIRONMENT>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="1a6b033f-4e2c-420e-a7f5-21fabcc023fe" name="Default" comment="" />
+    <ignored path="dune-diffusionPDELab.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="dune-diffusionPDELab" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/src/stationaryDiffusion.hh" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" />
+  <component name="JsBuildToolPackageJson" detection-done="true" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1599" />
+    <option name="width" value="1282" />
+    <option name="height" value="1024" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dune-diffusionPDELab" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dune-diffusionPDELab" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dune-diffusionPDELab" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dune-diffusionPDELab" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dune-diffusionPDELab" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../build/DiffusionTest/dune-diffusionPDELab" />
+    <property name="settings.editor.splitter.proportion" value="0.2" />
+  </component>
+  <component name="RunManager" selected="Application.Build All">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="Continuous" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Continuous" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="Continuous" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousBuild">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousConfigure">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousCoverage">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousMemCheck">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousStart">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousSubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousSubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousSubmit">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousTest">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ContinuousUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ContinuousUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ContinuousUpdate">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="doc" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="doc" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="doxygen_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="doxygen_install" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Experimental" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="Experimental" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalBuild">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalConfigure">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalCoverage">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalMemCheck">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalStart">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalSubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalSubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalSubmit">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalTest">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ExperimentalUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="ExperimentalUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="ExperimentalUpdate">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="headercheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="headercheck" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Nightly" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="Nightly" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyBuild">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyConfigure">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyCoverage">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyMemCheck">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyMemoryCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyMemoryCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyMemoryCheck">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyStart">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlySubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlySubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlySubmit">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyTest">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="NightlyUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="NightlyUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="NightlyUpdate">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="OUTPUT" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="OUTPUT" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Doxyfile" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="Doxyfile" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="doxygen_dune-diffusionPDELab" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="doxygen_dune-diffusionPDELab" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="dune-diffusionPDELab" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="dune-diffusionPDELab" TARGET_NAME="dune-diffusionPDELab" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="dune-diffusionPDELab">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="dune-diffusionPDELab" RUN_TARGET_NAME="dune-diffusionPDELab" EXPLICIT_BUILD_TARGET_NAME="all">
+      <envs />
+      <method />
+    </configuration>
+    <list size="36">
+      <item index="0" class="java.lang.String" itemvalue="Application.Continuous" />
+      <item index="1" class="java.lang.String" itemvalue="Application.ContinuousBuild" />
+      <item index="2" class="java.lang.String" itemvalue="Application.ContinuousConfigure" />
+      <item index="3" class="java.lang.String" itemvalue="Application.ContinuousCoverage" />
+      <item index="4" class="java.lang.String" itemvalue="Application.ContinuousMemCheck" />
+      <item index="5" class="java.lang.String" itemvalue="Application.ContinuousStart" />
+      <item index="6" class="java.lang.String" itemvalue="Application.ContinuousSubmit" />
+      <item index="7" class="java.lang.String" itemvalue="Application.ContinuousTest" />
+      <item index="8" class="java.lang.String" itemvalue="Application.ContinuousUpdate" />
+      <item index="9" class="java.lang.String" itemvalue="Application.doc" />
+      <item index="10" class="java.lang.String" itemvalue="Application.doxygen_install" />
+      <item index="11" class="java.lang.String" itemvalue="Application.Experimental" />
+      <item index="12" class="java.lang.String" itemvalue="Application.ExperimentalBuild" />
+      <item index="13" class="java.lang.String" itemvalue="Application.ExperimentalConfigure" />
+      <item index="14" class="java.lang.String" itemvalue="Application.ExperimentalCoverage" />
+      <item index="15" class="java.lang.String" itemvalue="Application.ExperimentalMemCheck" />
+      <item index="16" class="java.lang.String" itemvalue="Application.ExperimentalStart" />
+      <item index="17" class="java.lang.String" itemvalue="Application.ExperimentalSubmit" />
+      <item index="18" class="java.lang.String" itemvalue="Application.ExperimentalTest" />
+      <item index="19" class="java.lang.String" itemvalue="Application.ExperimentalUpdate" />
+      <item index="20" class="java.lang.String" itemvalue="Application.headercheck" />
+      <item index="21" class="java.lang.String" itemvalue="Application.Nightly" />
+      <item index="22" class="java.lang.String" itemvalue="Application.NightlyBuild" />
+      <item index="23" class="java.lang.String" itemvalue="Application.NightlyConfigure" />
+      <item index="24" class="java.lang.String" itemvalue="Application.NightlyCoverage" />
+      <item index="25" class="java.lang.String" itemvalue="Application.NightlyMemCheck" />
+      <item index="26" class="java.lang.String" itemvalue="Application.NightlyMemoryCheck" />
+      <item index="27" class="java.lang.String" itemvalue="Application.NightlyStart" />
+      <item index="28" class="java.lang.String" itemvalue="Application.NightlySubmit" />
+      <item index="29" class="java.lang.String" itemvalue="Application.NightlyTest" />
+      <item index="30" class="java.lang.String" itemvalue="Application.NightlyUpdate" />
+      <item index="31" class="java.lang.String" itemvalue="Application.OUTPUT" />
+      <item index="32" class="java.lang.String" itemvalue="Application.Doxyfile" />
+      <item index="33" class="java.lang.String" itemvalue="Application.doxygen_dune-diffusionPDELab" />
+      <item index="34" class="java.lang.String" itemvalue="Application.dune-diffusionPDELab" />
+      <item index="35" class="java.lang.String" itemvalue="Application.Build All" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1a6b033f-4e2c-420e-a7f5-21fabcc023fe" name="Default" comment="" />
+      <created>1453812656554</created>
+      <option name="number" value="Default" />
+      <updated>1453812656554</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="1599" y="0" width="1282" height="1024" extended-state="6" />
+    <editor active="false" />
+    <layout>
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.7634989" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32937366" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32937366" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/dune-diffusionPDELab.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.10472973">
+          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/stationaryDiffusion.hh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16722973">
+          <caret line="392" column="0" selection-start-line="392" selection-start-column="0" selection-end-line="392" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
