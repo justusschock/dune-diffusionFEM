@@ -14,14 +14,6 @@
 // include grid part
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
-// include output
-#include <dune/fem/io/file/dataoutput.hh>
-
-// include header of elliptic solver
-#include "FEMscheme.hh"
-#include "problemInterface.hh"
-#include "diffusionModel.hh"
-
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
 template <class HGridType>
 double algorithm ( HGridType &grid, int step )
