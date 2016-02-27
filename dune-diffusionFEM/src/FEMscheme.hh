@@ -45,10 +45,9 @@
 // DataOutputParameters
 // --------------------
 
-class DataOutputParameters
+struct DataOutputParameters
         : public Dune::Fem::LocalParameter< Dune::Fem::DataOutputParameters, DataOutputParameters >
 {
-public:
     DataOutputParameters ( const int step )
             : step_( step )
     {}
@@ -60,7 +59,7 @@ public:
     std::string prefix () const
     {
         std::stringstream s;
-        s << "diffusion-" << step_ << "-";
+        s << "poisson-" << step_ << "-";
         return s.str();
     }
 

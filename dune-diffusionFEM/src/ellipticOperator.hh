@@ -11,26 +11,36 @@
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include "dirichletConstraints.hh"
 
-template<class DiscreteFunction, class Model>
-class EllipticOperator : public virtual Dune::Fem::Operator<DiscreteFunction>
+// EllipticOperator
+// ----------------
+
+//! [Class for elliptic operator]
+template< class DiscreteFunction, class Model >
+struct EllipticOperator
+        : public virtual Dune::Fem::Operator< DiscreteFunction >
+//! [Class for elliptic operator]
 {
-public:
-    using DiscreteFunctionType = DiscreteFunction;
-    using ModelType = Model;
+    typedef DiscreteFunction DiscreteFunctionType;
+    typedef Model            ModelType;
 
 protected:
-    using DiscreteFunctionSpaceType = typename DiscreteFunctionType::DiscreteFunctionSpaceType;
-    using LocalFunctionType         = typename DiscreteFunctionType::LocalFunctionType;
-    using RangeType                 = typename LocalFunctionType::RangeType;
-    using JacobianRangeType         = typename LocalFunctionType::JacobianRangeType;
-    using IteratorType              = typename DiscreteFunctionSpaceType::IteratorType;
-    using EntityType                = typename IteratorType::Entity;
-    using GeometryType              = typename EntityType::Geometry;
-    using DomainType                = typename DiscreteFunctionSpaceType::DomainType ;
-    using GridPartType              = typename DiscreteFunctionSpaceType::GridPartType;
-    using QuadratureType            = Dune::Fem::CachingQuadrature< GridPartType, 0 >;
-    using ConstraintsType           = DirichletConstraints<ModelType, DiscreteFunctionType>;
+    typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+    typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
+    typedef typename LocalFunctionType::RangeType RangeType;
+    typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
 
+    typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
+    typedef typename IteratorType::Entity       EntityType;
+    typedef typename EntityType::Geometry       GeometryType;
+
+    typedef typename DiscreteFunctionSpaceType::DomainType DomainType;
+
+    typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
+
+    typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
+
+    //! type of Dirichlet constraints
+    typedef DirichletConstraints< ModelType, DiscreteFunctionSpaceType > ConstraintsType;
 
 public:
     //! contructor
@@ -65,7 +75,7 @@ private:
 
 //! [Class for linearizable elliptic operator]
 template< class JacobianOperator, class Model >
-class DifferentiableEllipticOperator
+struct DifferentiableEllipticOperator
         : public EllipticOperator< typename JacobianOperator::DomainFunctionType, Model >,
           public Dune::Fem::DifferentiableOperator< JacobianOperator >
 //! [Class for linearizable elliptic operator]
@@ -179,8 +189,8 @@ void EllipticOperator< DiscreteFunction, Model >
 // ------------------------------------------------
 
 template< class JacobianOperator, class Model >
-void DifferentiableEllipticOperator< JacobianOperator, Model >
-::jacobian ( const DiscreteFunctionType &u, JacobianOperator &jOp ) const
+void DifferentiableEllipticOperator< JacobianOperator, Model >::jacobian
+        ( const DiscreteFunctionType &u, JacobianOperator &jOp ) const
 {
     typedef typename JacobianOperator::LocalMatrixType LocalMatrixType;
     typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;

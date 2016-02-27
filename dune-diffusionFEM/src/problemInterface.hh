@@ -7,7 +7,14 @@
 #include <dune/common/exceptions.hh>
 #include <dune/fem/function/common/function.hh>
 
-/** problem interface class for problem descriptions, i.e. right hand side,
+
+#include <cassert>
+#include <cmath>
+
+#include <dune/common/exceptions.hh>
+#include <dune/fem/function/common/function.hh>
+
+/** \brief problem interface class for problem descriptions, i.e. right hand side,
  *         boudnary data, and, if exsistent, an exact solution.
  */
 template <class FunctionSpace>
@@ -29,25 +36,17 @@ public:
 
     typedef Dune::FieldMatrix< RangeFieldType, dimDomain, dimDomain > DiffusionTensorType;
 
-    //right side data
+    //! the right hand side data (default = 0)
     virtual void f(const DomainType& x,
                    RangeType& value) const
     {
         value = 0;
     }
 
-    // diffusion coefficient (default = Id)
-    virtual void D(const DomainType& x, DiffusionTensorType& D ) const
+    //! mass coefficient (default = 0)
+    virtual void m(const DomainType& x, RangeType &m) const
     {
-        // set to identity by default
-        D = 0;
-        for( int i=0; i<D.rows; ++i )
-            D[ i ][ i ] = 1;
-    }
-    //velocity field
-    virtual void b(const DomainType& x, RangeType &b) const
-    {
-        b = RangeType(0);
+        m = RangeType(0);
     }
 
     //! the exact solution (default = 0)
@@ -57,16 +56,6 @@ public:
         value = 0;
     }
 
-    //sink term
-    virtual void c(const DomainType &x, RangeType &c){
-        c = RangeType(0);
-    }
-
-    //source term
-    virtual void a(const DomainType &x, RangeType &a){
-        a = RangeType(0);
-    }
-
     //! the jacobian of the exact solution (default = 0)
     virtual void uJacobian(const DomainType& x,
                            JacobianRangeType& value) const
@@ -74,7 +63,14 @@ public:
         value = 0;
     }
 
-
+    //! diffusion coefficient (default = Id)
+    virtual void D(const DomainType& x, DiffusionTensorType& D ) const
+    {
+        // set to identity by default
+        D = 0;
+        for( int i=0; i<D.rows; ++i )
+            D[ i ][ i ] = 1;
+    }
 
     //! return true if Dirichlet boundary is present (default is true)
     virtual bool hasDirichletBoundary () const

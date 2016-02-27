@@ -4,6 +4,7 @@
 
 #include <dune/fem/function/common/scalarproducts.hh>
 
+
 template < class Model, class DiscreteFunctionSpace >
 class DirichletConstraints
 {
@@ -22,8 +23,7 @@ public:
 
     typedef Dune::Fem::SlaveDofs< DiscreteFunctionSpaceType, BlockMapperType > SlaveDofsType;
     typedef typename SlaveDofsType :: SingletonKey SlaveDofsKeyType;
-    typedef Dune::Fem::SingletonList< SlaveDofsKeyType, SlaveDofsType >
-            SlaveDofsProviderType;
+    typedef Dune::Fem::SingletonList< SlaveDofsKeyType, SlaveDofsType > SlaveDofsProviderType;
 
     DirichletConstraints( const ModelType &model, const DiscreteFunctionSpaceType& space )
             : model_(model),

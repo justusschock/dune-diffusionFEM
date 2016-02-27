@@ -15,9 +15,8 @@
 // --------------
 
 template< class FunctionSpace, class GridPart >
-class DiffusionModel
+struct NonLinearModel
 {
-public:
     typedef FunctionSpace FunctionSpaceType;
     typedef GridPart GridPartType;
 
@@ -31,11 +30,10 @@ public:
     static const bool isLinear = false;
     static const bool isSymmetric = false;
 
-    class ProblemType : public ProblemInterface < FunctionSpace >
+    struct ProblemType : public ProblemInterface < FunctionSpace >
     {
-    public:
         typedef ProblemInterface < FunctionSpace >  BaseType;
-
+    public:
         typedef typename BaseType :: RangeType            RangeType;
         typedef typename BaseType :: DomainType           DomainType;
         typedef typename BaseType :: JacobianRangeType    JacobianRangeType;
@@ -94,7 +92,7 @@ public:
     typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<bnd>, GridPartType > DirichletBoundaryType;
 
     //! constructor taking problem reference
-    DiffusionModel( const ProblemType& problem, const GridPart &gridPart )
+    NonLinearModel( const ProblemType& problem, const GridPart &gridPart )
             : problem_( problem ),
               gridPart_(gridPart),
               rhs_(problem_),

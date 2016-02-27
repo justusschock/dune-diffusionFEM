@@ -8,33 +8,50 @@
 #include "problemInterface.hh"
 #include "diffusionModel.hh"
 
-template<class GridType>
-double algorithm(GridType &grid, int step){
+// iostream includes
+#include <iostream>
 
-    typedef Dune::Fem::AdaptiveLeafGridPart<GridType, Dune::InteriorBorder_Partition> GridPartType;
+// include grid part
+#include <dune/fem/gridpart/adaptiveleafgridpart.hh>
+
+// include output
+#include <dune/fem/io/file/dataoutput.hh>
+
+// include header of elliptic solver
+#include "FEMscheme.hh"
+#include "problemInterface.hh"
+#include "diffusionModel.hh"
+
+// assemble-solve-estimate-mark-refine-IO-error-doitagain
+template <class HGridType>
+double algorithm ( HGridType &grid, int step )
+{
+    // we want to solve the problem on the leaf elements of the grid
+    typedef Dune::Fem::AdaptiveLeafGridPart< HGridType, Dune::InteriorBorder_Partition > GridPartType;
     GridPartType gridPart(grid);
 
     // use a scalar function space
-    typedef Dune::Fem::FunctionSpace<double, double, GridType::dimensionworld, 1> FunctionSpaceType;
+    typedef Dune::Fem::FunctionSpace< double, double,
+            HGridType :: dimensionworld, 1 > FunctionSpaceType;
 
     // type of the mathematical model used
-    typedef DiffusionModel<FunctionSpaceType, GridPartType> ModelType;
+    typedef NonLinearModel< FunctionSpaceType, GridPartType > ModelType;
 
-    typedef typename ModelType::ProblemType ProblemType;
-    ProblemType problem;
+    typedef typename ModelType :: ProblemType ProblemType ;
+    ProblemType problem ;
 
     // implicit model for left hand side
-    ModelType implicitModel(problem, gridPart);
+    ModelType implicitModel( problem, gridPart );
 
-    typedef FemScheme<ModelType> SchemeType;
-    SchemeType scheme(gridPart, implicitModel);
+    // poisson solver
+    typedef FemScheme< ModelType > SchemeType;
+    SchemeType scheme( gridPart, implicitModel );
 
     typedef Dune::Fem::GridFunctionAdapter< ProblemType, GridPartType > GridExactSolutionType;
     GridExactSolutionType gridExactSolution("exact solution", problem, gridPart, 5 );
-
-    //! input/output tuple and setup datawriter
+    //! input/output tuple and setup datawritter
     typedef Dune::tuple< const typename SchemeType::DiscreteFunctionType *, GridExactSolutionType * > IOTupleType;
-    typedef Dune::Fem::DataOutput<GridType, IOTupleType > DataOutputType;
+    typedef Dune::Fem::DataOutput< HGridType, IOTupleType > DataOutputType;
     IOTupleType ioTuple( &(scheme.solution()), &gridExactSolution) ; // tuple with pointers
     DataOutputType dataOutput( grid, ioTuple, DataOutputParameters( step ) );
 
@@ -49,13 +66,15 @@ double algorithm(GridType &grid, int step){
     // calculate error
     double error = 0 ;
 
-    // calculate standard error
-    // select norm for error computation
-    typedef Dune::Fem::L2Norm<GridPartType> NormType;
-    NormType norm(gridPart);
-    error = norm.distance(gridExactSolution, scheme.solution());
+    {
+        // calculate standard error
+        // select norm for error computation
+        typedef Dune::Fem::L2Norm< GridPartType > NormType;
+        NormType norm( gridPart );
+        return norm.distance( gridExactSolution, scheme.solution() );
+    }
 
-    return error;
+    return error ;
 }
 
 template<class GridType>
