@@ -16,10 +16,11 @@
 
 //! [Class for elliptic operator]
 template< class DiscreteFunction, class Model >
-struct EllipticOperator
+class EllipticOperator
         : public virtual Dune::Fem::Operator< DiscreteFunction >
 //! [Class for elliptic operator]
 {
+public:
     typedef DiscreteFunction DiscreteFunctionType;
     typedef Model            ModelType;
 
@@ -75,11 +76,12 @@ private:
 
 //! [Class for linearizable elliptic operator]
 template< class JacobianOperator, class Model >
-struct DifferentiableEllipticOperator
+class DifferentiableEllipticOperator
         : public EllipticOperator< typename JacobianOperator::DomainFunctionType, Model >,
           public Dune::Fem::DifferentiableOperator< JacobianOperator >
 //! [Class for linearizable elliptic operator]
 {
+public:
     typedef EllipticOperator< typename JacobianOperator::DomainFunctionType, Model > BaseType;
 
     typedef JacobianOperator JacobianOperatorType;

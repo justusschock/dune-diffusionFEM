@@ -14,6 +14,8 @@
 // include grid part
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
+#include<thread>
+
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
 template <class HGridType>
 double algorithm ( HGridType &grid, int step )
@@ -27,7 +29,7 @@ double algorithm ( HGridType &grid, int step )
             HGridType :: dimensionworld, 1 > FunctionSpaceType;
 
     // type of the mathematical model used
-    typedef NonLinearModel< FunctionSpaceType, GridPartType > ModelType;
+    typedef DiffusionModel< FunctionSpaceType, GridPartType > ModelType;
 
     typedef typename ModelType :: ProblemType ProblemType ;
     ProblemType problem ;
@@ -58,13 +60,12 @@ double algorithm ( HGridType &grid, int step )
     // calculate error
     double error = 0 ;
 
-    {
-        // calculate standard error
-        // select norm for error computation
-        typedef Dune::Fem::L2Norm< GridPartType > NormType;
-        NormType norm( gridPart );
-        return norm.distance( gridExactSolution, scheme.solution() );
-    }
+
+    // calculate standard error
+    // select norm for error computation
+    typedef Dune::Fem::L2Norm< GridPartType > NormType;
+    NormType norm( gridPart );
+    error = norm.distance( gridExactSolution, scheme.solution() );
 
     return error ;
 }
@@ -78,13 +79,15 @@ bool solveDiffusionPDE(GridType &grid, const int refineSteps, const int level, c
     // setup EOC loop
 
     // calculate first step
-    double oldError = algorithm( grid, (repeats > 0) ? 0 : -1 );
+    double oldError = INFINITY;
 
     for( int step = 1; step <= repeats; ++step )
     {
         // refine globally such that grid with is bisected
         // and all memory is adjusted correctly
         Dune::Fem::GlobalRefine::apply( grid, refineSteps );
+
+
 
         const double newError = algorithm( grid, step );
         const double eoc = log( oldError / newError ) / M_LN2;

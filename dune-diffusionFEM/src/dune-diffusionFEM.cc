@@ -1,16 +1,12 @@
 #ifdef HAVE_CONFIG_H
+
 #endif
 
 #include <iostream>
-#include <dune/common/parallel/mpihelper.hh> // An initializer of MPI
 #include <dune/fem/misc/mpimanager.hh>
-#include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#include <dune/fem/space/common/adaptmanager.hh>
-#include <dune/grid/io/file/dgfparser.hh>
-#include <dune/grid/io/visual/grapedatadisplay.hh>
 
 
-#include "diffusionPDE.hh"
+#include "poissonPDE.hh"
 
 
 
@@ -28,9 +24,8 @@ int main(int argc, char** argv)
         Dune::array<int, dim> N (Dune::fill_array<int, dim>(1));
         std::bitset<dim> B(false);
         Dune::YaspGrid<dim> grid(L,N,B,false);
-        std::cout<< "Test";
 
-        solveDiffusionPDE<typename Dune::YaspGrid<dim>>(grid, 5, 0, 4);
+        solveDiffusionPDE<Dune::YaspGrid<dim>>(grid, 1, 0, 5);
         
 
         return 0;

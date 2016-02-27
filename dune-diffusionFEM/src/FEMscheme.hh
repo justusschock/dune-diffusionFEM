@@ -45,9 +45,10 @@
 // DataOutputParameters
 // --------------------
 
-struct DataOutputParameters
+class DataOutputParameters
         : public Dune::Fem::LocalParameter< Dune::Fem::DataOutputParameters, DataOutputParameters >
 {
+public:
     DataOutputParameters ( const int step )
             : step_( step )
     {}
