@@ -6,8 +6,6 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 
-#include <dune/fem/quadrature/cachingquadrature.hh>
-
 
 // assembleRHS
 // -----------

@@ -1,5 +1,6 @@
 #ifdef HAVE_CONFIG_H
 
+#include "config.h"
 #endif
 
 #include <iostream>
@@ -25,7 +26,7 @@ int main(int argc, char** argv)
         std::bitset<dim> B(false);
         Dune::YaspGrid<dim> grid(L,N,B,false);
 
-        solveDiffusionPDE<Dune::YaspGrid<dim>>(grid, 1, 0, 5);
+        solvePoissonPDE<Dune::YaspGrid<dim>>(grid, 2, 0, 2);
         
 
         return 0;

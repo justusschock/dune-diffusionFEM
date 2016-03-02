@@ -6,20 +6,24 @@
 
 #include "FEMscheme.hh"
 #include "problemInterface.hh"
-#include "diffusionModel.hh"
+#include "nonlinearModel.hh"
 
 // iostream includes
 #include <iostream>
 
 // include grid part
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
+#include<dune/fem/io/file/vtkio.hh>
 
-#include<thread>
+const bool graphics = true;
 
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
 template <class HGridType>
 double algorithm ( HGridType &grid, int step )
 {
+    std::stringstream fullname;
+    fullname << "poisson_step_" << step;
+
     // we want to solve the problem on the leaf elements of the grid
     typedef Dune::Fem::AdaptiveLeafGridPart< HGridType, Dune::InteriorBorder_Partition > GridPartType;
     GridPartType gridPart(grid);
@@ -29,7 +33,7 @@ double algorithm ( HGridType &grid, int step )
             HGridType :: dimensionworld, 1 > FunctionSpaceType;
 
     // type of the mathematical model used
-    typedef DiffusionModel< FunctionSpaceType, GridPartType > ModelType;
+    typedef nonlinearModel< FunctionSpaceType, GridPartType > ModelType;
 
     typedef typename ModelType :: ProblemType ProblemType ;
     ProblemType problem ;
@@ -67,11 +71,22 @@ double algorithm ( HGridType &grid, int step )
     NormType norm( gridPart );
     error = norm.distance( gridExactSolution, scheme.solution() );
 
+        // write vtk file
+    if (graphics) {
+        Dune::Fem::SubsamplingVTKIO<GridPartType> vtkio(gridPart);
+
+        vtkio.addVertexData(scheme.solution(),"solution");
+
+        vtkio.write(fullname.str(), Dune::VTK::appendedraw);
+
+
+    }
+
     return error ;
 }
 
 template<class GridType>
-bool solveDiffusionPDE(GridType &grid, const int refineSteps, const int level, const int repeats)
+bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats)
 {
     // refine grid
     Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );

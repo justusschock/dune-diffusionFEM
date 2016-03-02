@@ -15,7 +15,7 @@
 // --------------
 
 template< class FunctionSpace, class GridPart >
-class DiffusionModel
+class nonlinearModel
 {
 public:
     typedef FunctionSpace FunctionSpaceType;
@@ -94,7 +94,7 @@ public:
     typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<bnd>, GridPartType > DirichletBoundaryType;
 
     //! constructor taking problem reference
-    DiffusionModel( const ProblemType& problem, const GridPart &gridPart )
+    nonlinearModel( const ProblemType& problem, const GridPart &gridPart )
             : problem_( problem ),
               gridPart_(gridPart),
               rhs_(problem_),
