@@ -188,8 +188,8 @@ void DGEllipticOperator< DiscreteFunction, Model >
                 const IntersectionType &intersection = *iit;
                 if ( intersection.neighbor() )
                 {
-                    const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
-                    const EntityType &outside = *pOutside;
+                    //const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
+                    const EntityType &outside = intersection.outside();
                     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
                     const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
@@ -390,8 +390,8 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
 
             if( intersection.neighbor() )
             {
-                EntityPointerType ep = intersection.outside();
-                const EntityType& neighbor = *ep ;
+                //EntityPointerType ep = intersection.outside();
+                const EntityType& neighbor = intersection.outside() ;
                 typedef typename IntersectionType::Geometry  IntersectionGeometryType;
                 const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
