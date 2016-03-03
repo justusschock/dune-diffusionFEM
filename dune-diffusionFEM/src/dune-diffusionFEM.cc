@@ -6,7 +6,6 @@
 #include <iostream>
 #include <dune/fem/misc/mpimanager.hh>
 
-
 #include "poissonPDE.hh"
 
 
@@ -26,7 +25,7 @@ int main(int argc, char** argv)
         std::bitset<dim> B(false);
         Dune::YaspGrid<dim> grid(L,N,B,false);
 
-        solvePoissonPDE<Dune::YaspGrid<dim>>(grid, 2, 0, 2);
+        solvePoissonPDE<Dune::YaspGrid<dim>>(grid, 1, 0, 3, 1);
         
 
         return 0;

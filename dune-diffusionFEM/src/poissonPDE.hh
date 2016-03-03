@@ -1,42 +1,199 @@
 #ifndef DUNE_DIFFUSIONFEM_DIFFUSIONPDE_HH
 #define DUNE_DIFFUSIONFEM_DIFFUSIONPDE_HH
 
+#include <cassert>
+#include <cmath>
 // include output
 #include <dune/fem/io/file/dataoutput.hh>
-
-#include "FEMscheme.hh"
-#include "problemInterface.hh"
-#include "nonlinearModel.hh"
 
 // iostream includes
 #include <iostream>
 
 // include grid part
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#include<dune/fem/io/file/vtkio.hh>
+
+// include output
+#include <dune/fem/io/file/dataoutput.hh>
+#include <dune/fem/io/file/vtkio.hh>
+
+// include header of elliptic solver
+#include "FEMscheme.hh"
+
+#include "problemInterface.hh"
 
 const bool graphics = true;
 
+
+// -laplace u + u = f with Neumann boundary conditions on domain [0,1]^d
+// Exact solution is u(x_1,...,x_d) = cos(2*pi*x_1)...cos(2*pi*x_d)
+template <class FunctionSpace>
+class CosinusProduct : public ProblemInterface < FunctionSpace >
+{
+    typedef ProblemInterface < FunctionSpace >  BaseType;
+public:
+    typedef typename BaseType :: RangeType            RangeType;
+    typedef typename BaseType :: DomainType           DomainType;
+    typedef typename BaseType :: JacobianRangeType    JacobianRangeType;
+    typedef typename BaseType :: DiffusionTensorType  DiffusionTensorType;
+
+    enum { dimRange  = BaseType :: dimRange };
+    enum { dimDomain = BaseType :: dimDomain };
+
+    //! the right hand side data (default = 0)
+    virtual void f(const DomainType& x,
+                   RangeType& phi) const
+    {
+        phi = 4*dimDomain*(M_PI*M_PI);
+        for( int i = 0; i < dimDomain; ++i )
+            phi *= std::cos( 2*M_PI*x[ i ] );
+        RangeType uVal;
+        u(x,uVal);
+        phi += uVal;
+    }
+
+    //! the exact solution
+    virtual void u(const DomainType& x,
+                   RangeType& phi) const
+    {
+        phi = 1;
+        for( int i = 0; i < dimDomain; ++i )
+            phi *= std::cos( 2*M_PI*x[ i ] );
+    }
+
+    //! the jacobian of the exact solution
+    virtual void uJacobian(const DomainType& x,
+                           JacobianRangeType& ret) const
+    {
+        for( int r = 0; r < dimRange; ++ r )
+        {
+            for( int i = 0; i < dimDomain; ++i )
+            {
+                ret[ r ][ i ] = -2*M_PI*std::sin( 2*M_PI*x[ i ] );
+                for( int j = 1; j < dimDomain; ++j )
+                    ret[ r ][ i ] *= std::cos( 2*M_PI*x[ (i+j)%dimDomain ] );
+            }
+        }
+    }
+    //! mass coefficient has to be 1 for this problem
+    virtual void m(const DomainType& x, RangeType &m) const
+    {
+        m = RangeType(1);
+    }
+    //! the Dirichlet boundary data (default calls u)
+    virtual void g(const DomainType& x,
+                   RangeType& value) const
+    {
+        value = RangeType( 0 );
+    }
+};
+// -laplace u = f with zero Dirichlet boundary conditions on domain [0,1]^d
+// Exact solution is u(x_1,...,x_d) = sin(2*pi*x_1)...sin(2*pi*x_d)
+template <class FunctionSpace>
+class SinusProduct : public ProblemInterface < FunctionSpace >
+{
+    typedef ProblemInterface < FunctionSpace >  BaseType;
+public:
+    typedef typename BaseType :: RangeType            RangeType;
+    typedef typename BaseType :: DomainType           DomainType;
+    typedef typename BaseType :: JacobianRangeType    JacobianRangeType;
+    typedef typename BaseType :: DiffusionTensorType  DiffusionTensorType;
+
+    enum { dimRange  = BaseType :: dimRange };
+    enum { dimDomain = BaseType :: dimDomain };
+
+    //! the right hand side data (default = 0)
+    virtual void f(const DomainType& x,
+                   RangeType& phi) const
+    {
+        phi = 4*dimDomain*(M_PI*M_PI);
+        for( int i = 0; i < dimDomain; ++i )
+            phi *= std::sin( 2*M_PI*x[ i ] );
+    }
+
+    //! the exact solution
+    virtual void u(const DomainType& x,
+                   RangeType& phi) const
+    {
+        phi = 1;
+        for( int i = 0; i < dimDomain; ++i )
+            phi *= std::sin( 2*M_PI*x[ i ] );
+        phi[0] += x[0]*x[0]-x[1]*x[1]+x[0]*x[1];
+        // phi[0] += x[0]*x[1];
+        // phi[0] += 0.5;
+    }
+
+    //! the jacobian of the exact solution
+    virtual void uJacobian(const DomainType& x,
+                           JacobianRangeType& ret) const
+    {
+        for( int r = 0; r < dimRange; ++ r )
+        {
+            for( int i = 0; i < dimDomain; ++i )
+            {
+                ret[ r ][ i ] = 2*M_PI*std::cos( 2*M_PI*x[ i ] );
+                for( int j = 1; j < dimDomain; ++j )
+                    ret[ r ][ i ] *= std::sin( 2*M_PI*x[ (i+j)%dimDomain ] );
+            }
+        }
+        ret[0][0] +=  2.*x[0]+x[1];
+        ret[0][1] += -2.*x[1]+x[0];
+        // ret[0][0] += x[1];
+        // ret[0][1] += x[0];
+    }
+    //! mass coefficient has to be 1 for this problem
+    virtual void m(const DomainType& x, RangeType &m) const
+    {
+        m = RangeType(0);
+    }
+
+    //! return true if given point belongs to the Dirichlet boundary (default is true)
+    virtual bool isDirichletPoint( const DomainType& x ) const
+    {
+        return true;
+    }
+    virtual bool hasDirichletBoundary () const
+    {
+        return true ;
+    }
+};
+
+
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
 template <class HGridType>
-double algorithm ( HGridType &grid, int step )
+double algorithm ( HGridType &grid, int step, const int problemNumber )
 {
-    std::stringstream fullname;
-    fullname << "poisson_step_" << step;
-
     // we want to solve the problem on the leaf elements of the grid
-    typedef Dune::Fem::AdaptiveLeafGridPart< HGridType, Dune::InteriorBorder_Partition > GridPartType;
+    typedef Dune::Fem::AdaptiveLeafGridPart< HGridType > GridPartType;
     GridPartType gridPart(grid);
 
     // use a scalar function space
     typedef Dune::Fem::FunctionSpace< double, double,
-            HGridType :: dimensionworld, 1 > FunctionSpaceType;
+            HGridType::dimensionworld, 1 > FunctionSpaceType;
 
     // type of the mathematical model used
     typedef nonlinearModel< FunctionSpaceType, GridPartType > ModelType;
 
-    typedef typename ModelType :: ProblemType ProblemType ;
-    ProblemType problem ;
+    typedef typename ModelType::ProblemType ProblemType ;
+    ProblemType* problemPtr = 0 ;
+    std::stringstream fullname;
+    fullname << "poisson_";
+
+    switch ( problemNumber )
+    {
+        case 0:
+            problemPtr = new CosinusProduct< FunctionSpaceType > ();
+            fullname << "cos_problem_step_" << step;
+            break ;
+        case 1:
+            problemPtr = new SinusProduct< FunctionSpaceType > ();
+            fullname << "sin_problem_step_" << step;
+            break ;
+        default:
+            problemPtr = new CosinusProduct< FunctionSpaceType > ();
+            fullname << "cos_problem_step_" << step;
+    }
+    assert( problemPtr );
+    ProblemType& problem = *problemPtr ;
 
     // implicit model for left hand side
     ModelType implicitModel( problem, gridPart );
@@ -55,8 +212,8 @@ double algorithm ( HGridType &grid, int step )
 
     // setup the right hand side
     scheme.prepare();
-    // solve once
-    scheme.solve( true );
+    // solve once (assemble matrix)
+    scheme.solve(true);
 
     // write initial solve
     dataOutput.write();
@@ -71,22 +228,22 @@ double algorithm ( HGridType &grid, int step )
     NormType norm( gridPart );
     error = norm.distance( gridExactSolution, scheme.solution() );
 
-        // write vtk file
+    // write vtk file
     if (graphics) {
         Dune::Fem::SubsamplingVTKIO<GridPartType> vtkio(gridPart);
 
-        vtkio.addVertexData(scheme.solution(),"solution");
+        vtkio.addVertexData(scheme.solution(), "Numerical_solution");
+        vtkio.addVertexData(gridExactSolution, "Exact_solution");
+        //vtkio.addVertexData( , "Dirichlet_boundary_condition");
 
         vtkio.write(fullname.str(), Dune::VTK::appendedraw);
-
-
     }
 
     return error ;
 }
 
 template<class GridType>
-bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats)
+bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const int problemNumber)
 {
     // refine grid
     Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );
@@ -104,7 +261,7 @@ bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, con
 
 
 
-        const double newError = algorithm( grid, step );
+        const double newError = algorithm( grid, step, problemNumber );
         const double eoc = log( oldError / newError ) / M_LN2;
         if( Dune::Fem::MPIManager::rank() == 0 )
         {

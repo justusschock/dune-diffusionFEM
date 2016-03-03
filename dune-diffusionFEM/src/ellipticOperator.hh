@@ -1,24 +1,17 @@
-
-#ifndef DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH
-#define DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH
-
 #include <dune/common/fmatrix.hh>
 
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
-#include <dune/fem/operator/common/stencil.hh>
 
 #include <dune/fem/operator/common/differentiableoperator.hh>
-#include "dirichletConstraints.hh"
+#include <dune/fem/operator/common/stencil.hh>
 
 // EllipticOperator
 // ----------------
 
-//! [Class for elliptic operator]
 template< class DiscreteFunction, class Model >
-class EllipticOperator
+class DGEllipticOperator
         : public virtual Dune::Fem::Operator< DiscreteFunction >
-//! [Class for elliptic operator]
 {
 public:
     typedef DiscreteFunction DiscreteFunctionType;
@@ -32,30 +25,32 @@ protected:
 
     typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
     typedef typename IteratorType::Entity       EntityType;
+    typedef typename EntityType::EntityPointer  EntityPointerType;
     typedef typename EntityType::Geometry       GeometryType;
 
     typedef typename DiscreteFunctionSpaceType::DomainType DomainType;
 
     typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
+    typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
+    typedef typename IntersectionIteratorType::Intersection IntersectionType;
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
+    typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
     typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
 
-    //! type of Dirichlet constraints
-    typedef DirichletConstraints< ModelType, DiscreteFunctionSpaceType > ConstraintsType;
+    static const int dimDomain = LocalFunctionType::dimDomain;
+    static const int dimRange = LocalFunctionType::dimRange;
 
 public:
     //! contructor
-    EllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space )
+    DGEllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space)
             : model_( model )
-            , constraints_( model, space )
     {}
 
     // prepare the solution vector
     template <class Function>
     void prepare( const Function &func, DiscreteFunctionType &u )
     {
-        // set boundary values for solution
-        constraints()( func, u );
     }
 
     //! application operator
@@ -64,25 +59,22 @@ public:
 
 protected:
     const ModelType &model () const { return model_; }
-    const ConstraintsType &constraints () const { return constraints_; }
+    double penalty() const { return model_.penalty(); }
 
 private:
     ModelType model_;
-    ConstraintsType constraints_;
 };
 
-// DifferentiableEllipticOperator
+// DifferentiableDGEllipticOperator
 // ------------------------------
 
-//! [Class for linearizable elliptic operator]
 template< class JacobianOperator, class Model >
-class DifferentiableEllipticOperator
-        : public EllipticOperator< typename JacobianOperator::DomainFunctionType, Model >,
+class DifferentiableDGEllipticOperator
+        : public DGEllipticOperator< typename JacobianOperator::DomainFunctionType, Model >,
           public Dune::Fem::DifferentiableOperator< JacobianOperator >
-//! [Class for linearizable elliptic operator]
 {
 public:
-    typedef EllipticOperator< typename JacobianOperator::DomainFunctionType, Model > BaseType;
+    typedef DGEllipticOperator< typename JacobianOperator::DomainFunctionType, Model > BaseType;
 
     typedef JacobianOperator JacobianOperatorType;
 
@@ -93,22 +85,31 @@ protected:
     typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
     typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
     typedef typename LocalFunctionType::RangeType RangeType;
+    typedef typename LocalFunctionType::RangeFieldType RangeFieldType;
     typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
 
     typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
     typedef typename IteratorType::Entity       EntityType;
+    typedef typename EntityType::EntityPointer  EntityPointerType;
     typedef typename EntityType::Geometry       GeometryType;
 
-    typedef typename DiscreteFunctionSpaceType :: DomainType DomainType;
+    typedef typename DiscreteFunctionSpaceType::DomainType DomainType;
 
     typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
+    typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
+    typedef typename IntersectionIteratorType::Intersection IntersectionType;
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
-    typedef typename BaseType::QuadratureType QuadratureType;
+    typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
+    typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
+
+    static const int dimDomain = LocalFunctionType::dimDomain;
+    static const int dimRange = LocalFunctionType::dimRange;
 
 public:
     //! contructor
-    DifferentiableEllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space, bool sw=true )
-            : BaseType( model, space )
+    DifferentiableDGEllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space )
+            : BaseType( model, space ), stencil_(space,space)
     {}
 
     //! method to setup the jacobian of the operator for storage in a matrix
@@ -116,14 +117,15 @@ public:
 
 protected:
     using BaseType::model;
-    using BaseType::constraints;
+    using BaseType::penalty;
+    Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil_;
 };
 
-// Implementation of EllipticOperator
+// Implementation of DGEllipticOperator
 // ----------------------------------
 
 template< class DiscreteFunction, class Model >
-void EllipticOperator< DiscreteFunction, Model >
+void DGEllipticOperator< DiscreteFunction, Model >
 ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const
 {
     // clear destination
@@ -153,7 +155,6 @@ void EllipticOperator< DiscreteFunction, Model >
             const size_t numQuadraturePoints = quadrature.nop();
             for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
             {
-                //! [Compute local contribution of operator]
                 const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
                 const double weight = quadrature.weight( pt ) * geometry.integrationElement( x );
 
@@ -175,55 +176,179 @@ void EllipticOperator< DiscreteFunction, Model >
 
                 // add to local function
                 wLocal.axpy( quadrature[ pt ], avu, adu );
-                //! [Compute local contribution of operator]
             }
         }
+        if ( ! dfSpace.continuous() )
+        {
+            const double area = entity.geometry().volume();
+            const IntersectionIteratorType iitend = dfSpace.gridPart().iend( entity );
+            for( IntersectionIteratorType iit = dfSpace.gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
+            {
+                //! [Compute skeleton terms: iterate over intersections]
+                const IntersectionType &intersection = *iit;
+                if ( intersection.neighbor() )
+                {
+                    const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
+                    const EntityType &outside = *pOutside;
+                    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+                    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+
+                    // compute penalty factor
+                    const double intersectionArea = intersectionGeometry.volume();
+                    const double beta = penalty() * intersectionArea / std::min( area, outside.geometry().volume() );
+
+                    LocalFunctionType uOutLocal = u.localFunction( outside ); // local u on outisde element
+
+                    FaceQuadratureType quadInside( dfSpace.gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
+                    FaceQuadratureType quadOutside( dfSpace.gridPart(), intersection, quadOrder, FaceQuadratureType::OUTSIDE );
+                    const size_t numQuadraturePoints = quadInside.nop();
+                    //! [Compute skeleton terms: iterate over intersections]
+
+                    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+                    {
+                        //! [Compute skeleton terms: obtain required values on the intersection]
+                        // get coordinate of quadrature point on the reference element of the intersection
+                        const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+                        const DomainType normal = intersection.integrationOuterNormal( x );
+                        const double weight = quadInside.weight( pt );
+
+                        RangeType value;
+                        JacobianRangeType dvalue,advalue;
+
+                        RangeType vuIn,vuOut,jump;
+                        JacobianRangeType duIn, aduIn, duOut, aduOut;
+                        uLocal.evaluate( quadInside[ pt ], vuIn );
+                        uLocal.jacobian( quadInside[ pt ], duIn );
+                        model_.diffusiveFlux( entity, quadInside[ pt ], vuIn, duIn, aduIn );
+                        uOutLocal.evaluate( quadOutside[ pt ], vuOut );
+                        uOutLocal.jacobian( quadOutside[ pt ], duOut );
+                        model_.diffusiveFlux( entity, quadInside[ pt ], jump, dvalue, advalue );
+                        model_.diffusiveFlux( outside, quadOutside[ pt ], vuOut, duOut, aduOut );
+                        //! [Compute skeleton terms: obtain required values on the intersection]
+
+                        //! [Compute skeleton terms: compute factors for axpy method]
+                        jump = vuIn - vuOut;
+                        // penalty term : beta [u] [phi] = beta (u+ - u-)(phi+ - phi-)=beta (u+ - u-)phi+
+                        value = jump;
+                        value *= beta * intersectionGeometry.integrationElement( x );
+                        // {A grad u}.[phi] = {A grad u}.phi+ n_+ = 0.5*(grad u+ + grad u-).n_+ phi+
+                        aduIn += aduOut;
+                        aduIn *= -0.5;
+                        aduIn.umv(normal,value);
+                        //  [ u ] * { grad phi_en } = -normal(u+ - u-) * 0.5 grad phi_en
+                        // here we need a diadic product of u x n
+                        for (int r=0;r<dimRange;++r)
+                            for (int d=0;d<dimDomain;++d)
+                                dvalue[r][d] = -0.5 * normal[d] * jump[r];
+
+                        value *= weight;
+                        advalue *= weight;
+                        wLocal.axpy( quadInside[ pt ], value, advalue );
+                        //! [Compute skeleton terms: compute factors for axpy method]
+                    }
+                }
+                else if( intersection.boundary() )
+                {
+                    if ( ! model().isDirichletIntersection( intersection ) )
+                        continue;
+
+                    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+                    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+
+                    // compute penalty factor
+                    const double intersectionArea = intersectionGeometry.volume();
+                    const double beta = penalty() * intersectionArea / area;
+
+                    FaceQuadratureType quadInside( dfSpace.gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
+                    const size_t numQuadraturePoints = quadInside.nop();
+
+                    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+                    {
+                        const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+                        const DomainType normal = intersection.integrationOuterNormal( x );
+                        const double weight = quadInside.weight( pt );
+
+                        RangeType value;
+                        JacobianRangeType dvalue,advalue;
+
+                        RangeType vuIn,jump;
+                        JacobianRangeType duIn, aduIn;
+                        uLocal.evaluate( quadInside[ pt ], vuIn );
+                        uLocal.jacobian( quadInside[ pt ], duIn );
+                        model_.diffusiveFlux( entity, quadInside[ pt ], vuIn, duIn, aduIn );
+
+                        jump = vuIn;
+
+                        // penalty term : beta [u] [phi] = beta (u+ - u-)(phi+ - phi-)=beta (u+ - u-)phi+
+                        value = jump;
+                        value *= beta * intersectionGeometry.integrationElement( x );
+                        // {A grad u}.[phi] = {A grad u}.phi+ n_+ = 0.5*(grad u+ + grad u-).n_+ phi+
+                        aduIn.umv(normal,value);
+
+                        //  [ u ] * { grad phi_en } = -normal(u+ - u-) * 0.5 grad phi_en
+                        // here we need a diadic product of u x n
+                        for (int r=0;r<dimRange;++r)
+                            for (int d=0;d<dimDomain;++d)
+                                dvalue[r][d] = -0.5 * normal[d] * jump[r];
+
+                        model_.diffusiveFlux( entity, quadInside[ pt ], jump, dvalue, advalue );
+
+                        value *= weight;
+                        advalue *= weight;
+                        wLocal.axpy( quadInside[ pt ], value, advalue );
+                    }
+                }
+            }
+        }
+
     }
 
     // communicate data (in parallel runs)
     w.communicate();
-
-    // apply constraints, e.g. Dirichlet contraints, to the result
-    constraints()( u, w );
 }
 
-// Implementation of DifferentiableEllipticOperator
+// Implementation of DifferentiableDGEllipticOperator
 // ------------------------------------------------
 
 template< class JacobianOperator, class Model >
-void DifferentiableEllipticOperator< JacobianOperator, Model >::jacobian
-        ( const DiscreteFunctionType &u, JacobianOperator &jOp ) const
+void DifferentiableDGEllipticOperator< JacobianOperator, Model >
+::jacobian ( const DiscreteFunctionType &u, JacobianOperator &jOp ) const
 {
     typedef typename JacobianOperator::LocalMatrixType LocalMatrixType;
     typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
 
-    const DiscreteFunctionSpaceType &dfSpace = u.space();
-
-    Dune::Fem::DiagonalStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(dfSpace,dfSpace);
-    jOp.reserve(stencil);
+    jOp.reserve(stencil_);
     jOp.clear();
 
-    const int blockSize = dfSpace.localBlockSize; // is equal to 1 for scalar functions
-    std::vector< typename LocalFunctionType::RangeType > phi( dfSpace.blockMapper().maxNumDofs()*blockSize );
-    std::vector< typename LocalFunctionType::JacobianRangeType > dphi( dfSpace.blockMapper().maxNumDofs()*blockSize );
+    const DiscreteFunctionSpaceType &dfSpace = u.space();
+    const GridPartType& gridPart = dfSpace.gridPart();
+
+    const unsigned int numDofs = dfSpace.blockMapper().maxNumDofs() *
+                                 DiscreteFunctionSpaceType :: localBlockSize ;
+
+    std::vector< RangeType > phi( numDofs );
+    std::vector< JacobianRangeType > dphi( numDofs );
+
+    std::vector< RangeType > phiNb( numDofs );
+    std::vector< JacobianRangeType > dphiNb( numDofs );
 
     const IteratorType end = dfSpace.end();
     for( IteratorType it = dfSpace.begin(); it != end; ++it )
     {
         const EntityType &entity = *it;
-        const GeometryType &geometry = entity.geometry();
+        const GeometryType geometry = entity.geometry();
 
         const LocalFunctionType uLocal = u.localFunction( entity );
+
         LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
 
         const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
-        const unsigned int numBasisFunctions = baseSet.size();
+        const unsigned int numBaseFunctions = baseSet.size();
 
         QuadratureType quadrature( entity, 2*dfSpace.order() );
         const size_t numQuadraturePoints = quadrature.nop();
         for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
         {
-            //! [Assembling the local matrix]
             const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
             const double weight = quadrature.weight( pt ) * geometry.integrationElement( x );
 
@@ -241,7 +366,7 @@ void DifferentiableEllipticOperator< JacobianOperator, Model >::jacobian
 
             RangeType aphi( 0 );
             JacobianRangeType adphi( 0 );
-            for( unsigned int localCol = 0; localCol < numBasisFunctions; ++localCol )
+            for( unsigned int localCol = 0; localCol < numBaseFunctions; ++localCol )
             {
                 // if mass terms or right hand side is present
                 model().linSource( u0, entity, quadrature[ pt ], phi[ localCol ], aphi );
@@ -252,13 +377,192 @@ void DifferentiableEllipticOperator< JacobianOperator, Model >::jacobian
                 // get column object and call axpy method
                 jLocal.column( localCol ).axpy( phi, dphi, aphi, adphi, weight );
             }
-            //! [Assembling the local matrix]
+        }
+        if ( dfSpace.continuous() )
+            continue;
+
+        double area = geometry.volume();
+        const IntersectionIteratorType endiit = gridPart.iend( entity );
+        for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
+              iit != endiit ; ++ iit )
+        {
+            const IntersectionType& intersection = *iit ;
+
+            if( intersection.neighbor() )
+            {
+                EntityPointerType ep = intersection.outside();
+                const EntityType& neighbor = *ep ;
+                typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+                const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+
+                //! [Assemble skeleton terms: get contributions on off diagonal block]
+                // get local matrix for face entries
+                LocalMatrixType localOpNb = jOp.localMatrix( neighbor, entity );
+                // get neighbor's base function set
+                const BasisFunctionSetType &baseSetNb = localOpNb.domainBasisFunctionSet();
+                //! [Assemble skeleton terms: get contributions on off diagonal block]
+
+                // compute penalty factor
+                const double intersectionArea = intersectionGeometry.volume();
+                const double beta = penalty() * intersectionArea / std::min( area, neighbor.geometry().volume() );
+
+                // here we assume that the intersection is conforming
+                FaceQuadratureType faceQuadInside(gridPart, intersection, 2*dfSpace.order() + 1,
+                                                  FaceQuadratureType::INSIDE);
+                FaceQuadratureType faceQuadOutside(gridPart, intersection, 2*dfSpace.order() + 1,
+                                                   FaceQuadratureType::OUTSIDE);
+
+                const size_t numFaceQuadPoints = faceQuadInside.nop();
+                for( size_t pt = 0; pt < numFaceQuadPoints; ++pt )
+                {
+                    const typename FaceQuadratureType::LocalCoordinateType &x = faceQuadInside.localPoint( pt );
+                    DomainType normal = intersection.integrationOuterNormal( x );
+                    double faceVol = normal.two_norm();
+                    normal /= faceVol; // make it into a unit normal
+
+                    const double quadWeight = faceQuadInside.weight( pt );
+                    const double weight = quadWeight * faceVol;
+
+                    //! [Assemble skeleton terms: obtain values om quadrature point]
+                    RangeType u0En;
+                    JacobianRangeType u0EnJac;
+                    uLocal.evaluate( faceQuadInside[ pt ], u0En );
+                    uLocal.jacobian( faceQuadInside[ pt ], u0EnJac );
+
+                    /////////////////////////////////////////////////////////////
+                    // evaluate basis function of face inside E^- (entity)
+                    /////////////////////////////////////////////////////////////
+
+                    // evaluate all basis functions for quadrature point pt
+                    baseSet.evaluateAll( faceQuadInside[ pt ], phi );
+
+                    // evaluate the jacobians of all basis functions
+                    baseSet.jacobianAll( faceQuadInside[ pt ], dphi );
+
+                    /////////////////////////////////////////////////////////////
+                    // evaluate basis function of face inside E^+ (neighbor)
+                    /////////////////////////////////////////////////////////////
+
+                    // evaluate all basis functions for quadrature point pt on neighbor
+                    baseSetNb.evaluateAll( faceQuadOutside[ pt ], phiNb );
+
+                    // evaluate the jacobians of all basis functions on neighbor
+                    baseSetNb.jacobianAll( faceQuadOutside[ pt ], dphiNb );
+
+                    for( unsigned int i = 0; i < numBaseFunctions; ++i )
+                    {
+                        JacobianRangeType adphiEn = dphi[ i ];
+                        JacobianRangeType adphiNb = dphiNb[ i ];
+                        model().linDiffusiveFlux( u0En, u0EnJac, entity,   faceQuadInside[ pt ], phi[i], adphiEn, dphi[ i ] );
+                        model().linDiffusiveFlux( u0En, u0EnJac, neighbor,   faceQuadOutside[ pt ], phiNb[i], adphiNb, dphiNb[ i ] );
+                    }
+                    //! [Assemble skeleton terms: obtain values om quadrature point]
+
+                    //! [Assemble skeleton terms: compute factors for axpy method]
+                    for( unsigned int localCol = 0; localCol < numBaseFunctions; ++localCol )
+                    {
+                        RangeType valueEn(0), valueNb(0);
+                        JacobianRangeType dvalueEn(0), dvalueNb(0);
+
+                        //  -{ A grad u } * [ phi_en ]
+                        dphi[localCol].usmv( -0.5, normal, valueEn );
+
+                        //  -{ A grad u } * [ phi_en ]
+                        dphiNb[localCol].usmv( -0.5, normal, valueNb );
+
+                        //  [ u ] * [ phi_en ] = u^- * phi_en^-
+                        valueEn.axpy( beta, phi[ localCol ] );
+
+                        valueNb.axpy(-beta, phiNb[ localCol ] );
+                        // here we need a diadic product of u x n
+                        for ( int r=0; r< dimRange; ++r )
+                            for ( int d=0; d< dimDomain; ++d )
+                            {
+                                //  [ u ] * { grad phi_en }
+                                dvalueEn[r][d] = - 0.5 * normal[d] * phi[localCol][r];
+
+                                //  [ u ] * { grad phi_en }
+                                dvalueNb[r][d] = 0.5 * normal[d] * phiNb[localCol][r];
+                            }
+
+                        jLocal.column( localCol ).axpy( phi, dphi, valueEn, dvalueEn, weight );
+                        localOpNb.column( localCol ).axpy( phi, dphi, valueNb, dvalueNb, weight );
+                    }
+                    //! [Assemble skeleton terms: compute factors for axpy method]
+                }
+            }
+            else if( intersection.boundary() )
+            {
+                if ( ! model().isDirichletIntersection( intersection ) )
+                    continue;
+
+                typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+                const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+
+                // compute penalty factor
+                const double intersectionArea = intersectionGeometry.volume();
+                const double beta = penalty() * intersectionArea / area;
+
+                // here we assume that the intersection is conforming
+                FaceQuadratureType faceQuadInside(gridPart, intersection, 2*dfSpace.order() + 1,
+                                                  FaceQuadratureType::INSIDE);
+
+                const size_t numFaceQuadPoints = faceQuadInside.nop();
+                for( size_t pt = 0; pt < numFaceQuadPoints; ++pt )
+                {
+                    const typename FaceQuadratureType::LocalCoordinateType &x = faceQuadInside.localPoint( pt );
+                    DomainType normal = intersection.integrationOuterNormal( x );
+                    double faceVol = normal.two_norm();
+                    normal /= faceVol; // make it into a unit normal
+
+                    const double quadWeight = faceQuadInside.weight( pt );
+                    const double weight = quadWeight * faceVol;
+
+                    RangeType u0En;
+                    JacobianRangeType u0EnJac;
+                    uLocal.evaluate( faceQuadInside[ pt ], u0En );
+                    uLocal.jacobian( faceQuadInside[ pt ], u0EnJac );
+
+                    /////////////////////////////////////////////////////////////
+                    // evaluate basis function of face inside E^- (entity)
+                    /////////////////////////////////////////////////////////////
+
+                    // evaluate all basis functions for quadrature point pt
+                    baseSet.evaluateAll( faceQuadInside[ pt ], phi );
+
+                    // evaluate the jacobians of all basis functions
+                    baseSet.jacobianAll( faceQuadInside[ pt ], dphi );
+
+                    for( unsigned int i = 0; i < numBaseFunctions; ++i )
+                    {
+                        JacobianRangeType adphiEn = dphi[ i ];
+                        model().linDiffusiveFlux( u0En, u0EnJac, entity,   faceQuadInside[ pt ], phi[i], adphiEn, dphi[ i ] );
+                    }
+
+                    for( unsigned int localCol = 0; localCol < numBaseFunctions; ++localCol )
+                    {
+                        RangeType valueEn(0);
+                        JacobianRangeType dvalueEn(0);
+
+                        //  -{ A grad u } * [ phi_en ]
+                        dphi[localCol].usmv( -0.5, normal, valueEn );
+
+                        //  [ u ] * [ phi_en ] = u^- * phi_en^-
+                        valueEn.axpy( beta, phi[ localCol ] );
+
+                        // here we need a diadic product of u x n
+                        for ( int r=0; r< dimRange; ++r )
+                            for ( int d=0; d< dimDomain; ++d )
+                            {
+                                //  [ u ] * { grad phi_en }
+                                dvalueEn[r][d] = - 0.5 * normal[d] * phi[localCol][r];
+                            }
+
+                        jLocal.column( localCol ).axpy( phi, dphi, valueEn, dvalueEn, weight );
+                    }
+                }
+            }
         }
     } // end grid traversal
-
-    // apply constraints to matrix operator
-    constraints().applyToOperator( jOp );
     jOp.communicate();
 }
-
-#endif //DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH

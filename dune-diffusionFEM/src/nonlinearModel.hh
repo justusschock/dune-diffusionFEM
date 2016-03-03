@@ -8,6 +8,7 @@
 
 #include <dune/fem/solver/timeprovider.hh>
 #include <dune/fem/io/parameter.hh>
+#include <dune/fem/quadrature/quadrature.hh>
 
 #include "problemInterface.hh"
 
@@ -28,62 +29,10 @@ public:
     typedef typename FunctionSpaceType::DomainFieldType DomainFieldType;
     typedef typename FunctionSpaceType::RangeFieldType RangeFieldType;
 
-    static const bool isLinear = false;
-    static const bool isSymmetric = false;
+    typedef ProblemInterface< FunctionSpaceType > ProblemType ;
 
-    class ProblemType : public ProblemInterface < FunctionSpace >
-    {
-    public:
-        typedef ProblemInterface < FunctionSpace >  BaseType;
-
-        typedef typename BaseType :: RangeType            RangeType;
-        typedef typename BaseType :: DomainType           DomainType;
-        typedef typename BaseType :: JacobianRangeType    JacobianRangeType;
-        typedef typename BaseType :: DiffusionTensorType  DiffusionTensorType;
-
-        enum { dimRange  = BaseType :: dimRange };
-        enum { dimDomain = BaseType :: dimDomain };
-
-        //! the right hand side data (default = 0)
-        virtual void f(const DomainType& x,
-                       RangeType& phi) const
-        {
-            phi = 4*dimDomain*(M_PI*M_PI);
-            for( int i = 0; i < dimDomain; ++i )
-                phi *= std::cos( 2*M_PI*x[ i ] );
-            RangeType uVal;
-            u(x,uVal);
-            JacobianRangeType grad;
-            uJacobian(x,grad);
-            phi *= (uVal[0]*uVal[0]+2.);
-            phi -= (grad[0]*grad[0])*2.*uVal[0];
-            phi += uVal[0]*uVal[0]*uVal[0] / 3.0;
-        }
-
-        //! the exact solution
-        virtual void u(const DomainType& x,
-                       RangeType& phi) const
-        {
-            phi = 1;
-            for( int i = 0; i < dimDomain; ++i )
-                phi *= std::cos( 2*M_PI*x[ i ] );
-        }
-
-        //! the jacobian of the exact solution
-        virtual void uJacobian(const DomainType& x,
-                               JacobianRangeType& ret) const
-        {
-            for( int r = 0; r < dimRange; ++ r )
-            {
-                for( int i = 0; i < dimDomain; ++i )
-                {
-                    ret[ r ][ i ] = -2*M_PI*std::sin( 2*M_PI*x[ i ] );
-                    for( int j = 1; j < dimDomain; ++j )
-                        ret[ r ][ i ] *= std::cos( 2*M_PI*x[ (i+j)%dimDomain ] );
-                }
-            }
-        }
-    };
+    static const bool isLinear = true;
+    static const bool isSymmetric = true;
 
 protected:
     enum FunctionId { rhs, bnd };
@@ -99,7 +48,7 @@ public:
               gridPart_(gridPart),
               rhs_(problem_),
               bnd_(problem_),
-              penalty_(Dune::Fem::Parameter::getValue<double>("dg.penalty", 0.0))
+              penalty_(10)
     {
     }
 
@@ -109,7 +58,7 @@ public:
                   const RangeType &value,
                   RangeType &flux ) const
     {
-        flux[0] = value[0]*value[0]*value[0] / 3.0;
+        linSource( value, entity, x, value, flux );
     }
 
     // the linearization of the source function
@@ -120,9 +69,12 @@ public:
                      const RangeType &value,
                      RangeType &flux ) const
     {
-        flux[0] = uBar[0]*uBar[0]*value[0];
+        const DomainType xGlobal = entity.geometry().global( Dune::Fem::coordinate( x ) );
+        RangeType m;
+        problem_.m(xGlobal,m);
+        for (unsigned int i=0;i<flux.size();++i)
+            flux[i] = m[i]*value[i];
     }
-
     //! return the diffusive flux
     template< class Entity, class Point >
     void diffusiveFlux ( const Entity &entity,
@@ -131,8 +83,7 @@ public:
                          const JacobianRangeType &gradient,
                          JacobianRangeType &flux ) const
     {
-        flux = gradient;
-        flux *= value[0]*value[0]+2.;
+        linDiffusiveFlux( value, gradient, entity, x, value, gradient, flux );
     }
     // linearization of diffusiveFlux
     template< class Entity, class Point >
@@ -144,14 +95,14 @@ public:
                             const JacobianRangeType &gradient,
                             JacobianRangeType &flux ) const
     {
-        diffusiveFlux(entity,x,uBar,gradient,flux);
-        flux.axpy(2.*uBar[0]*value[0],gradientBar);
+        // the flux is simply the identity
+        flux = gradient;
     }
 
     //! exact some methods from the problem class
     bool hasDirichletBoundary () const
     {
-        return false ;
+        return problem_.hasDirichletBoundary() ;
     }
 
     //! return true if given intersection belongs to the Dirichlet boundary -
@@ -165,7 +116,7 @@ public:
     //! return true if given point belongs to the Dirichlet boundary (default is true)
     bool isDirichletPoint( const DomainType& x ) const
     {
-        return false ;
+        return problem_.isDirichletPoint(x) ;
     }
 
     template< class Entity, class Point >
@@ -174,7 +125,8 @@ public:
             const Point &x,
             RangeType &u ) const
     {
-        u = RangeType(0);
+        const DomainType xGlobal = entity.geometry().global( Dune::Fem::coordinate( x ) );
+        problem_.g( xGlobal, u );
     }
 
     // return Fem :: Function for Dirichlet boundary values
@@ -194,6 +146,7 @@ public:
     {
         return penalty_;
     }
+
 protected:
     template <FunctionId id>
     class FunctionWrapper : public Dune::Fem::Function< FunctionSpaceType, FunctionWrapper< id > >

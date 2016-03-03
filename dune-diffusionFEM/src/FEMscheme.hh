@@ -7,7 +7,7 @@
 #include <iostream>
 
 // include discrete function space
-#include <dune/fem/space/lagrange.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 
 // adaptation ...
 #include <dune/fem/function/adaptivefunction.hh>
@@ -22,12 +22,7 @@
 
 #include <dune/fem/operator/linear/istloperator.hh>
 #include <dune/fem/solver/istlsolver.hh>
-#include <dune/fem/solver/oemsolver.hh>
 #include <dune/fem/solver/cginverseoperator.hh>
-#include <dune/fem/solver/newtoninverseoperator.hh>
-
-// lagrange interpolation
-#include <dune/fem/operator/lagrangeinterpolation.hh>
 
 /*********************************************************/
 
@@ -39,16 +34,25 @@
 #include <dune/fem/io/parameter.hh>
 
 // local includes
+#include "problemInterface.hh"
+
+#include "nonlinearModel.hh"
+
 #include "rhs.hh"
+
 #include "ellipticOperator.hh"
+
+// ISTL is only working of LinearOperators with matrix representation
+#if HAVE_DUNE_ISTL && WANT_ISTL
+#define USE_ISTL 1
+#endif
 
 // DataOutputParameters
 // --------------------
 
-class DataOutputParameters
+struct DataOutputParameters
         : public Dune::Fem::LocalParameter< Dune::Fem::DataOutputParameters, DataOutputParameters >
 {
-public:
     DataOutputParameters ( const int step )
             : step_( step )
     {}
@@ -94,39 +98,40 @@ public:
     typedef typename GridPartType::GridType GridType;
 
     //! type of function space (scalar functions, \f$ f: \Omega -> R \f$)
-    typedef typename ModelType::FunctionSpaceType   FunctionSpaceType;
+    typedef typename ModelType :: FunctionSpaceType   FunctionSpaceType;
 
     //! choose type of discrete function space
-    typedef Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, GridPartType, POLORDER > DiscreteFunctionSpaceType;
+    typedef Dune::Fem::DiscontinuousGalerkinSpace< FunctionSpaceType, GridPartType, POLORDER > DiscreteFunctionSpaceType;
 
     // choose type of discrete function, Matrix implementation and solver implementation
-#if HAVE_DUNE_ISTL && WANT_ISTL
+#if USE_ISTL
     typedef Dune::Fem::ISTLBlockVectorDiscreteFunction< DiscreteFunctionSpaceType > DiscreteFunctionType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > LinearOperatorType;
-  typedef Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, LinearOperatorType > LinearInverseOperatorType;
+  typedef Dune::Fem::ISTLCGOp< DiscreteFunctionType, LinearOperatorType > LinearInverseOperatorType;
 #else
     typedef Dune::Fem::AdaptiveDiscreteFunction< DiscreteFunctionSpaceType > DiscreteFunctionType;
     typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType > LinearOperatorType;
-    // typedef Dune::Fem::CGInverseOperator< DiscreteFunctionType > LinearInverseOperatorType;
-    typedef Dune::Fem::OEMBICGSTABOp< DiscreteFunctionType, LinearOperatorType > LinearInverseOperatorType;
+    typedef Dune::Fem::CGInverseOperator< DiscreteFunctionType > LinearInverseOperatorType;
 #endif
 
     /*********************************************************/
 
     //! define Laplace operator
-    typedef DifferentiableEllipticOperator< LinearOperatorType, ModelType > EllipticOperatorType;
-    //! [Newton solver]
-    typedef Dune::Fem::NewtonInverseOperator< LinearOperatorType, LinearInverseOperatorType > InverseOperatorType;
-    //! [Newton solver]
+    typedef DifferentiableDGEllipticOperator< LinearOperatorType, ModelType > EllipticOperatorType;
 
-    FemScheme( GridPartType &gridPart, const ModelType &implicitModel )
+    FemScheme( GridPartType &gridPart,
+               const ModelType& implicitModel )
             : implicitModel_( implicitModel ),
               gridPart_( gridPart ),
               discreteSpace_( gridPart_ ),
               solution_( "solution", discreteSpace_ ),
               rhs_( "rhs", discreteSpace_ ),
             // the elliptic operator (implicit)
-              implicitOperator_( implicitModel_, discreteSpace_ )
+              implicitOperator_( implicitModel_, discreteSpace_ ),
+            // create linear operator (domainSpace,rangeSpace)
+              linearOperator_( "assempled elliptic operator", discreteSpace_, discreteSpace_ ),
+            // exact solution
+              solverEps_( Dune::Fem::Parameter::getValue< double >( "poisson.solvereps", 1e-8 ) )
     {
         // set all DoF to zero
         solution_.clear();
@@ -140,20 +145,24 @@ public:
     //! sotup the right hand side
     void prepare()
     {
-        // set boundary values for solution
-        implicitOperator_.prepare( implicitModel_.dirichletBoundary(), solution_ );
-
         // assemble rhs
-        assembleRHS ( implicitModel_.rightHandSide(), rhs_ );
-
-        // apply constraints, e.g. Dirichlet contraints, to the result
-        implicitOperator_.prepare( solution_, rhs_ );
+        assembleDGRHS ( implicitModel_, rhs_ );
     }
 
-    //! solve the system
+    //! solve the system - bool parameter
+    //! false: only assemble if grid has changed
+    //! true:  assemble in any case
     void solve ( bool assemble )
     {
-        InverseOperatorType invOp( implicitOperator_ );
+        if( assemble )
+        {
+            // assemble linear operator (i.e. setup matrix)
+            implicitOperator_.jacobian( solution_ , linearOperator_ );
+        }
+
+        // inverse operator using linear operator
+        LinearInverseOperatorType invOp( linearOperator_, solverEps_, solverEps_ );
+        // solve system
         invOp( rhs_, solution_ );
     }
 
@@ -167,6 +176,10 @@ protected:
     DiscreteFunctionType rhs_;        // the right hand side
 
     EllipticOperatorType implicitOperator_; // the implicit operator
+
+    LinearOperatorType linearOperator_;  // the linear operator (i.e. jacobian of the implicit)
+
+    const double solverEps_ ; // eps for linear solver
 };
 
 
