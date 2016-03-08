@@ -68,6 +68,18 @@ struct DataOutputParameters
         return s.str();
     }
 
+    int outputformat() const{
+        return 1;
+    }
+
+    double savestep() const{
+        return 1.0;
+    }
+
+    int savecount() const{
+        return 1;
+    }
+
 private:
     int step_;
 };
@@ -77,7 +89,7 @@ private:
 
 /*******************************************************************************
  * template arguments are:
- * - GridPsrt: the part of the grid used to tesselate the
+ * - GridPart: the part of the grid used to tesselate the
  *             computational domain
  * - Model: description of the data functions and methods required for the
  *          elliptic operator (massFlux, diffusionFlux)
@@ -131,7 +143,7 @@ public:
             // create linear operator (domainSpace,rangeSpace)
               linearOperator_( "assempled elliptic operator", discreteSpace_, discreteSpace_ ),
             // exact solution
-              solverEps_( Dune::Fem::Parameter::getValue< double >( "poisson.solvereps", 1e-8 ) )
+              solverEps_( 1e-12 )
     {
         // set all DoF to zero
         solution_.clear();
@@ -142,7 +154,7 @@ public:
         return solution_;
     }
 
-    //! sotup the right hand side
+    //! setup the right hand side
     void prepare()
     {
         // assemble rhs

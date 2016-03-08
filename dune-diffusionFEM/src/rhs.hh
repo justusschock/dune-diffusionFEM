@@ -134,7 +134,7 @@ void assembleDGRHS ( const Model &model, DiscreteFunction &rhs )
                 value *= beta * intersectionGeometry.integrationElement( x );
 
                 //  [ u ] * { grad phi_en } = -normal(u+ - u-) * 0.5 grad phi_en
-                // here we need a diadic product of u x n
+                // diadic product of u x n
                 for (int r=0;r<dimRange;++r)
                     for (int d=0;d<dimDomain;++d)
                         dvalue[r][d] = -0.5 * normal[d] * vuOut[r];

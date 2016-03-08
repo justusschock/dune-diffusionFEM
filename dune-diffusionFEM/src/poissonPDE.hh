@@ -146,6 +146,12 @@ public:
         m = RangeType(0);
     }
 
+    virtual void g(const DomainType& x,
+                   RangeType& value) const
+    {
+        value = RangeType( 100 );
+    }
+
     //! return true if given point belongs to the Dirichlet boundary (default is true)
     virtual bool isDirichletPoint( const DomainType& x ) const
     {
@@ -216,11 +222,10 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     scheme.solve(true);
 
     // write initial solve
-    dataOutput.write();
+    dataOutput.write("~/ISEA/build/DiffusionTest/dune-diffusionFEM/src/test");
 
     // calculate error
     double error = 0 ;
-
 
     // calculate standard error
     // select norm for error computation
@@ -234,7 +239,7 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
 
         vtkio.addVertexData(scheme.solution(), "Numerical_solution");
         vtkio.addVertexData(gridExactSolution, "Exact_solution");
-        //vtkio.addVertexData( , "Dirichlet_boundary_condition");
+        //vtkio.addVertexData(, "Dirichlet_boundary_condition");
 
         vtkio.write(fullname.str(), Dune::VTK::appendedraw);
     }
@@ -265,8 +270,8 @@ bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, con
         const double eoc = log( oldError / newError ) / M_LN2;
         if( Dune::Fem::MPIManager::rank() == 0 )
         {
-            std::cout << "Error: " << newError << std::endl;
-            std::cout << "EOC( " << step << " ) = " << eoc << std::endl;
+            std::cout << "Error step " << step << " :" << newError << std::endl;
+            std::cout << "EOC( " << step <<"/"<< step-1 <<" ) = " << eoc << std::endl;
         }
         oldError = newError;
     }
