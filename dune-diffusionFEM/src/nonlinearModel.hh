@@ -12,6 +12,19 @@
 
 #include "problemInterface.hh"
 
+
+/**
+ * class for solving nonlinear elliptic equations of the form
+ *  -nabla*D(u(x, nabla u(x), x) + m(u(x), nabla u(x), x) = f(x) in x part of Omega
+ *  u(x) = g(x) on x part of dirichlet boundary of Omega
+ *  D(u(x), nabla u(x),x) * nu + alpha(u(x),x) = n(x) on x part of neumann boundary of Omega
+ *
+ *  class could also be used for thge simple linear problem:
+ *  -nabla *D(x) nabla u(x) + m(x)u(x) = f(x) in x part of Omega
+ *  u(x) = g(x) on x part of dirichlet boundary of Omega
+ *  nabla u(x) * nu + alpha(x)u(x) = n(x) on x part of neumann boundary of Omega
+ */
+
 // DiffusionModel
 // --------------
 
@@ -31,23 +44,27 @@ public:
 
     typedef ProblemInterface< FunctionSpaceType > ProblemType ;
 
+    static const int dimRange = FunctionSpaceType::dimRange;
+
     static const bool isLinear = true;
     static const bool isSymmetric = true;
 
 protected:
-    enum FunctionId { rhs, bnd };
+    enum FunctionId { rhs, bndD, bndN };
     template <FunctionId id>
     class FunctionWrapper;
 public:
     typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<rhs>, GridPartType > RightHandSideType;
-    typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<bnd>, GridPartType > DirichletBoundaryType;
+    typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<bndD>, GridPartType > DirichletBoundaryType;
+    typedef Dune::Fem::GridFunctionAdapter< FunctionWrapper<bndN>, GridPartType > NeumanBoundaryType;
 
     //! constructor taking problem reference
     nonlinearModel( const ProblemType& problem, const GridPart &gridPart )
             : problem_( problem ),
               gridPart_(gridPart),
               rhs_(problem_),
-              bnd_(problem_),
+              bndD_(problem_),
+              bndN_(problem_),
               penalty_(10)
     {
     }
@@ -56,17 +73,20 @@ public:
     void source ( const Entity &entity,
                   const Point &x,
                   const RangeType &value,
+                  const JacobianRangeType &gradient,
                   RangeType &flux ) const
     {
-        linSource( value, entity, x, value, flux );
+        linSource( value, gradient, entity, x, value, gradient, flux );
     }
 
     // the linearization of the source function
     template< class Entity, class Point >
     void linSource ( const RangeType& uBar,
+                     const JacobianRangeType &gradientBar,
                      const Entity &entity,
                      const Point &x,
                      const RangeType &value,
+                     const JacobianRangeType &gradient,
                      RangeType &flux ) const
     {
         const DomainType xGlobal = entity.geometry().global( Dune::Fem::coordinate( x ) );
@@ -99,40 +119,51 @@ public:
         flux = gradient;
     }
 
-    //! exact some methods from the problem class
+    template< class Entity, class Point >
+    void alpha(const Entity &entity, const Point &x,
+               const RangeType &value,
+               RangeType &val) const
+    {
+        linAlpha(value,entity,x,value,val);
+    }
+    template< class Entity, class Point >
+    void linAlpha(const RangeType &uBar,
+                  const Entity &entity, const Point &x,
+                  const RangeType &value,
+                  RangeType &val) const
+    {
+        const DomainType xGlobal = entity.geometry().global( coordinate( x ) );
+        RangeType alpha;
+        problem_.alpha(xGlobal,alpha);
+        for (unsigned int i=0;i<val.size();++i)
+            val[i] = alpha[i]*value[i];
+    }
+    //! extract some methods from the problem class
     bool hasDirichletBoundary () const
     {
         return problem_.hasDirichletBoundary() ;
+    }
+    bool hasNeumanBoundary () const
+    {
+        return problem_.hasNeumanBoundary() ;
     }
 
     //! return true if given intersection belongs to the Dirichlet boundary -
     //! we test here if the center is a dirichlet point
     template <class Intersection>
-    bool isDirichletIntersection( const Intersection& inter ) const
+    bool isDirichletIntersection( const Intersection& inter, Dune::FieldVector<bool,dimRange> &dirichletComponent ) const
     {
-        return isDirichletPoint( inter.geometry().center() );
-    }
-
-    //! return true if given point belongs to the Dirichlet boundary (default is true)
-    bool isDirichletPoint( const DomainType& x ) const
-    {
-        return problem_.isDirichletPoint(x) ;
-    }
-
-    template< class Entity, class Point >
-    void g( const RangeType& uBar,
-            const Entity &entity,
-            const Point &x,
-            RangeType &u ) const
-    {
-        const DomainType xGlobal = entity.geometry().global( Dune::Fem::coordinate( x ) );
-        problem_.g( xGlobal, u );
+        return problem_.isDirichletPoint( inter.geometry().center() ) ;
     }
 
     // return Fem :: Function for Dirichlet boundary values
     DirichletBoundaryType dirichletBoundary( ) const
     {
-        return DirichletBoundaryType( "boundary function", bnd_, gridPart_, 5 );
+        return DirichletBoundaryType( "boundary function", bndD_, gridPart_, 5 );
+    }
+    NeumanBoundaryType neumanBoundary( ) const
+    {
+        return NeumanBoundaryType( "boundary function", bndN_, gridPart_, 5 );
     }
 
     // return Fem :: Function for right hand side
@@ -164,10 +195,15 @@ protected:
                 // call right hand side of implementation
                 impl_.f( x, ret );
             }
-            else if( id == bnd )
+            else if( id == bndD )
             {
                 // call dirichlet boudary data of implementation
                 impl_.g( x, ret );
+            }
+            else if( id == bndN )
+            {
+                // call dirichlet boudary data of implementation
+                impl_.n( x, ret );
             }
             else
             {
@@ -179,7 +215,8 @@ protected:
     const ProblemType& problem_;
     const GridPart &gridPart_;
     FunctionWrapper<rhs> rhs_;
-    FunctionWrapper<bnd> bnd_;
+    FunctionWrapper<bndD> bndD_;
+    FunctionWrapper<bndN> bndN_;
     double penalty_;
 };
 
