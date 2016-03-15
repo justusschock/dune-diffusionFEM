@@ -7,13 +7,22 @@
 #include <dune/common/exceptions.hh>
 #include <dune/fem/function/common/function.hh>
 
+#include <cassert>
+#include <cmath>
+
+#include <dune/common/exceptions.hh>
+#include <dune/fem/function/common/function.hh>
+
 /** \brief problem interface class for problem descriptions, i.e. right hand side,
- *         boudnary data, and, if exsistent, an exact solution.
+ *         boundary data, and, if existent, an exact solution.
  */
 template <class FunctionSpace>
 class ProblemInterface : public Dune::Fem::Function< FunctionSpace, ProblemInterface<FunctionSpace> >
 {
 public:
+    ProblemInterface(const ProblemInterface &) = delete;
+    ProblemInterface& operator=(const ProblemInterface&) = delete;
+    ProblemInterface() = default;
     // type of function space
     typedef FunctionSpace  FunctionSpaceType;
 
@@ -40,6 +49,12 @@ public:
     virtual void m(const DomainType& x, RangeType &m) const
     {
         m = RangeType(0);
+    }
+
+    //! mass coefficient for Robin boundary (default = 0)
+    virtual void alpha(const DomainType& x, RangeType &a) const
+    {
+        a = RangeType(0);
     }
 
     //! the exact solution (default = 0)
@@ -70,6 +85,11 @@ public:
     {
         return false ;
     }
+    //! return true if Neuman boundary is present (default is true)
+    virtual bool hasNeumanBoundary () const
+    {
+        return false ;
+    }
 
     //! return true if given point belongs to the Dirichlet boundary (default is true)
     virtual bool isDirichletPoint( const DomainType& x ) const
@@ -82,6 +102,12 @@ public:
                    RangeType& value) const
     {
         u( x, value );
+    }
+    //! the Neuman boundary data (defaults to zero)
+    virtual void n(const DomainType& x,
+                   RangeType& value) const
+    {
+        value = RangeType(0);
     }
 
     //! make this into a fem function for the exact solution

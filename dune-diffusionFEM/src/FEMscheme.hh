@@ -116,7 +116,7 @@ public:
     typedef Dune::Fem::DiscontinuousGalerkinSpace< FunctionSpaceType, GridPartType, POLORDER > DiscreteFunctionSpaceType;
 
     // choose type of discrete function, Matrix implementation and solver implementation
-#if USE_ISTL
+#if HAVE_DUNE_ISTL && WANT_ISTL
     typedef Dune::Fem::ISTLBlockVectorDiscreteFunction< DiscreteFunctionSpaceType > DiscreteFunctionType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > LinearOperatorType;
   typedef Dune::Fem::ISTLCGOp< DiscreteFunctionType, LinearOperatorType > LinearInverseOperatorType;
@@ -143,7 +143,7 @@ public:
             // create linear operator (domainSpace,rangeSpace)
               linearOperator_( "assempled elliptic operator", discreteSpace_, discreteSpace_ ),
             // exact solution
-              solverEps_( 1e-12 )
+              solverEps_(1e-12)
     {
         // set all DoF to zero
         solution_.clear();
@@ -154,11 +154,11 @@ public:
         return solution_;
     }
 
-    //! setup the right hand side
+    //! sotup the right hand side
     void prepare()
     {
         // assemble rhs
-        assembleDGRHS ( implicitModel_, rhs_ );
+        assembleDGRHS ( implicitModel_, implicitModel_.rightHandSide(), implicitModel_.neumanBoundary(), implicitModel_.dirichletBoundary(), rhs_ );
     }
 
     //! solve the system - bool parameter

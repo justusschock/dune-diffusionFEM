@@ -1,3 +1,6 @@
+#ifndef DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH
+#define DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH
+
 #include <dune/common/fmatrix.hh>
 
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -42,7 +45,7 @@ protected:
     static const int dimRange = LocalFunctionType::dimRange;
 
 public:
-    //! contructor
+    //! constructor
     DGEllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space)
             : model_( model )
     {}
@@ -107,7 +110,7 @@ protected:
     static const int dimRange = LocalFunctionType::dimRange;
 
 public:
-    //! contructor
+    //! constructor
     DifferentiableDGEllipticOperator ( const ModelType &model, const DiscreteFunctionSpaceType &space )
             : BaseType( model, space ), stencil_(space,space)
     {}
@@ -165,7 +168,7 @@ void DGEllipticOperator< DiscreteFunction, Model >
 
                 // compute mass contribution (studying linear case so linearizing around zero)
                 RangeType avu( 0 );
-                model().source( entity, quadrature[ pt ], vu, avu );
+                model().source( entity, quadrature[ pt ], vu, du, avu );
                 avu *= weight;
                 // add to local functional wLocal.axpy( quadrature[ pt ], avu );
 
@@ -188,8 +191,7 @@ void DGEllipticOperator< DiscreteFunction, Model >
                 const IntersectionType &intersection = *iit;
                 if ( intersection.neighbor() )
                 {
-                    //const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
-                    const EntityType &outside = intersection.outside();
+                    const EntityType outside = Dune::Fem::make_entity( intersection.outside() );
                     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
                     const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
@@ -249,7 +251,8 @@ void DGEllipticOperator< DiscreteFunction, Model >
                 }
                 else if( intersection.boundary() )
                 {
-                    if ( ! model().isDirichletIntersection( intersection ) )
+                    Dune::FieldVector<bool,dimRange> components;
+                    if ( ! model().isDirichletIntersection( intersection, components) )
                         continue;
 
                     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
@@ -275,6 +278,13 @@ void DGEllipticOperator< DiscreteFunction, Model >
                         JacobianRangeType duIn, aduIn;
                         uLocal.evaluate( quadInside[ pt ], vuIn );
                         uLocal.jacobian( quadInside[ pt ], duIn );
+                        for (int r=0;r<dimRange;++r)
+                            if (!components[r]) // do not use dirichlet constraints here
+                            {
+                                vuIn[r] = 0;
+                                duIn[r] = 0;
+                            }
+
                         model_.diffusiveFlux( entity, quadInside[ pt ], vuIn, duIn, aduIn );
 
                         jump = vuIn;
@@ -369,7 +379,7 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
             for( unsigned int localCol = 0; localCol < numBaseFunctions; ++localCol )
             {
                 // if mass terms or right hand side is present
-                model().linSource( u0, entity, quadrature[ pt ], phi[ localCol ], aphi );
+                model().linSource( u0, jacU0, entity, quadrature[ pt ], phi[ localCol ], dphi[ localCol ], aphi );
 
                 // if gradient term is present
                 model().linDiffusiveFlux( u0, jacU0, entity, quadrature[ pt ], phi[ localCol ], dphi[ localCol ], adphi );
@@ -390,8 +400,7 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
 
             if( intersection.neighbor() )
             {
-                //EntityPointerType ep = intersection.outside();
-                const EntityType& neighbor = intersection.outside() ;
+                const EntityType neighbor = Dune::Fem::make_entity( intersection.outside() );
                 typedef typename IntersectionType::Geometry  IntersectionGeometryType;
                 const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
@@ -493,7 +502,8 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
             }
             else if( intersection.boundary() )
             {
-                if ( ! model().isDirichletIntersection( intersection ) )
+                Dune::FieldVector<bool,dimRange> components;
+                if ( ! model().isDirichletIntersection( intersection, components) )
                     continue;
 
                 typedef typename IntersectionType::Geometry  IntersectionGeometryType;
@@ -558,6 +568,13 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
                                 dvalueEn[r][d] = - 0.5 * normal[d] * phi[localCol][r];
                             }
 
+                        for (int r=0;r<dimRange;++r)
+                            if (!components[r]) // do not use dirichlet constraints here
+                            {
+                                valueEn[r] = 0;
+                                dvalueEn[r] = 0;
+                            }
+
                         jLocal.column( localCol ).axpy( phi, dphi, valueEn, dvalueEn, weight );
                     }
                 }
@@ -566,3 +583,5 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
     } // end grid traversal
     jOp.communicate();
 }
+
+#endif //DUNE_DIFFUSIONFEM_ELLIPTICOPERATOR_HH

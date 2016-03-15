@@ -24,7 +24,9 @@
 const bool graphics = true;
 
 
-// -laplace u + u = f with Neumann boundary conditions on domain [0,1]^d
+//general form of Robin b.c.: a*u + b* du/dn = g on boundary of omega
+
+// -laplace u + u = f with Dirichlet and Neumann boundary conditions on domain [0,1]^d (now: Robin b.c.)
 // Exact solution is u(x_1,...,x_d) = cos(2*pi*x_1)...cos(2*pi*x_d)
 template <class FunctionSpace>
 class CosinusProduct : public ProblemInterface < FunctionSpace >
@@ -74,19 +76,49 @@ public:
             }
         }
     }
+
     //! mass coefficient has to be 1 for this problem
     virtual void m(const DomainType& x, RangeType &m) const
     {
         m = RangeType(1);
     }
+
+    virtual void alpha(const DomainType& x, RangeType &a) const
+    {
+        a = RangeType(0.5);
+    }
     //! the Dirichlet boundary data (default calls u)
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType( 0 );
+        u(x,value);
+    }
+    virtual bool hasDirichletBoundary () const
+    {
+        return true ;
+    }
+    virtual bool hasNeumanBoundary () const
+    {
+        return true ;
+    }
+    virtual bool isDirichletPoint( const DomainType& x ) const
+    {
+        // all boundaries except the x=0 plane are Dirichlet
+        return (std::abs(x[0])>1e-8);
+
+    }
+    virtual void n(const DomainType& x,
+                   RangeType& value) const
+    {
+        u(x,value);
+        value *= 0.5;
+        JacobianRangeType jac;
+        uJacobian(x,jac);
+        value[0] -= jac[0][0];
     }
 };
-// -laplace u = f with zero Dirichlet boundary conditions on domain [0,1]^d
+
+// -laplace u = f with Dirichlet and Neumann boundary conditions on domain [0,1]^d (now: Robin b.c.)
 // Exact solution is u(x_1,...,x_d) = sin(2*pi*x_1)...sin(2*pi*x_d)
 template <class FunctionSpace>
 class SinusProduct : public ProblemInterface < FunctionSpace >
@@ -143,23 +175,43 @@ public:
     //! mass coefficient has to be 1 for this problem
     virtual void m(const DomainType& x, RangeType &m) const
     {
-        m = RangeType(0);
+        m = RangeType(1);
     }
 
+    //DomainType = Type of input variable (e.g const double)
+    //RangeType = Type of output variable (E.g. double)
+    virtual void alpha(const DomainType& x, RangeType &a) const
+    {
+        a = RangeType(0.5);
+    }
+    //! the Dirichlet boundary data (default calls u)
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType( 100 );
-    }
-
-    //! return true if given point belongs to the Dirichlet boundary (default is true)
-    virtual bool isDirichletPoint( const DomainType& x ) const
-    {
-        return true;
+        u(x,value);
     }
     virtual bool hasDirichletBoundary () const
     {
         return true ;
+    }
+    virtual bool hasNeumanBoundary () const
+    {
+        return true ;
+    }
+    virtual bool isDirichletPoint( const DomainType& x ) const
+    {
+        // all boundaries except the x=0 plane are Dirichlet
+        return (std::abs(x[0])>1e-8);
+
+    }
+    virtual void n(const DomainType& x,
+                   RangeType& value) const
+    {
+        u(x,value);
+        value *= 0.5;
+        JacobianRangeType jac;
+        uJacobian(x,jac);
+        value[0] -= jac[0][0];
     }
 };
 
@@ -175,7 +227,6 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     // use a scalar function space
     typedef Dune::Fem::FunctionSpace< double, double,
             HGridType::dimensionworld, 1 > FunctionSpaceType;
-
     // type of the mathematical model used
     typedef nonlinearModel< FunctionSpaceType, GridPartType > ModelType;
 

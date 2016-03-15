@@ -9,22 +9,30 @@
 // assembleRHS
 // -----------
 
-template< class Function, class DiscreteFunction >
-void assembleRHS ( const Function &function, DiscreteFunction &rhs )
+// assembleRHS
+// -----------
+
+template< class Model, class Function, class Neuman, class DiscreteFunction >
+void assembleRHS ( const Model &model, const Function &function, const Neuman &neuman, DiscreteFunction &rhs )
 {
+    const bool neumanBnd = model.hasNeumanBoundary();
+    rhs.clear();
     typedef typename DiscreteFunction::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
     typedef typename DiscreteFunction::LocalFunctionType LocalFunctionType;
 
+    typedef typename DiscreteFunctionSpaceType::GridPartType GridPartType;
     typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
     typedef typename IteratorType::Entity EntityType;
     typedef typename EntityType::Geometry GeometryType;
+    typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
+    typedef typename IntersectionIteratorType::Intersection IntersectionType;
+
+    const DiscreteFunctionSpaceType &dfSpace = rhs.space();
 
     typedef typename DiscreteFunctionSpaceType::GridPartType GridPartType;
     typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
-
-    rhs.clear();
-
-    const DiscreteFunctionSpaceType &dfSpace = rhs.space();
+    typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
+    const int quadOrder = 2*dfSpace.order()+1;
 
     const IteratorType end = dfSpace.end();
     for( IteratorType it = dfSpace.begin(); it != end; ++it )
@@ -32,11 +40,12 @@ void assembleRHS ( const Function &function, DiscreteFunction &rhs )
         const EntityType &entity = *it;
         const GeometryType &geometry = entity.geometry();
 
-        typename Function::LocalFunctionType localFunction =
+        const typename Function::LocalFunctionType localFunction =
                 function.localFunction( entity);
         LocalFunctionType rhsLocal = rhs.localFunction( entity );
+        typedef typename Function::RangeType RangeType;
 
-        QuadratureType quadrature( entity, 2*dfSpace.order()+1 );
+        QuadratureType quadrature( entity, quadOrder );
         const size_t numQuadraturePoints = quadrature.nop();
         for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
         {
@@ -44,7 +53,7 @@ void assembleRHS ( const Function &function, DiscreteFunction &rhs )
             const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
 
             // evaluate f
-            typename Function::RangeType f;
+            RangeType f;
             localFunction.evaluate( quadrature[ pt ], f );
 
             // multiply by quadrature weight
@@ -53,17 +62,51 @@ void assembleRHS ( const Function &function, DiscreteFunction &rhs )
             // add f * phi_i to rhsLocal[ i ]
             rhsLocal.axpy( quadrature[ pt ], f );
         }
+        if (neumanBnd)
+        {
+            if ( !entity.hasBoundaryIntersections() )
+                continue;
+
+            const IntersectionIteratorType iitend = dfSpace.gridPart().iend( entity );
+            for( IntersectionIteratorType iit = dfSpace.gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
+            {
+                const IntersectionType &intersection = *iit;
+                if ( ! intersection.boundary() )
+                    continue;
+                Dune::FieldVector<bool,RangeType::dimension> components(true);
+                // if ( model.isDirichletIntersection( intersection, components) )
+                //   continue;
+                bool hasDirichletComponent = model.isDirichletIntersection( intersection, components);
+
+                const typename Neuman::LocalFunctionType neumanLocal = neuman.localFunction( entity);
+
+                const typename IntersectionType::Geometry &intersectionGeometry = intersection.geometry();
+                FaceQuadratureType quadInside( dfSpace.gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
+                const size_t numQuadraturePoints = quadInside.nop();
+                for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+                {
+                    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+                    RangeType nval;
+                    neumanLocal.evaluate(quadInside[pt], nval);
+                    nval *= quadInside.weight( pt ) * intersectionGeometry.integrationElement( x );
+                    for(int k = 0; k < RangeType::dimension; ++k)
+                        if ( hasDirichletComponent && components[k] )
+                            nval[k] = 0;
+                    rhsLocal.axpy( quadInside[ pt ], nval );
+                }
+            }
+        }
     }
     rhs.communicate();
 }
 
-// assembleRHS
+// assembleDGRHS
 // -----------
 
-template< class Model, class DiscreteFunction >
-void assembleDGRHS ( const Model &model, DiscreteFunction &rhs )
+template< class Model, class Function, class Neuman, class Dirichlet, class DiscreteFunction >
+void assembleDGRHS ( const Model &model, const Function &function, const Neuman &neuman, const Dirichlet &dirichlet, DiscreteFunction &rhs )
 {
-    assembleRHS( model.rightHandSide(), rhs );
+    assembleRHS( model, function, neuman, rhs );
     if ( ! model.hasDirichletBoundary() )
         return;
 
@@ -106,8 +149,11 @@ void assembleDGRHS ( const Model &model, DiscreteFunction &rhs )
             const IntersectionType &intersection = *iit;
             if ( ! intersection.boundary() ) // i.e. if intersection is on boundary: nothing to be done for Neumann zero b.c.
                 continue;                      // since [u] = 0  and grad u.n = 0
-            if ( ! model.isDirichletIntersection( intersection ) )
+            Dune::FieldVector<bool,dimRange> components;
+            if ( ! model.isDirichletIntersection( intersection, components) )
                 continue;
+
+            const typename Dirichlet::LocalFunctionType dirichletLocal = dirichlet.localFunction( entity);
 
             typedef typename IntersectionType::Geometry  IntersectionGeometryType;
             const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
@@ -128,13 +174,16 @@ void assembleDGRHS ( const Model &model, DiscreteFunction &rhs )
                 JacobianRangeType dvalue,advalue;
 
                 RangeType vuOut;
-                model.g( RangeType(0), entity, quadInside.point(pt), vuOut );
+                dirichletLocal.evaluate( quadInside[pt], vuOut );
+                for (int r=0;r<dimRange;++r)
+                    if (!components[r]) // do not use dirichlet constraints here
+                        vuOut[r] = 0;
 
                 value = vuOut;
                 value *= beta * intersectionGeometry.integrationElement( x );
 
                 //  [ u ] * { grad phi_en } = -normal(u+ - u-) * 0.5 grad phi_en
-                // diadic product of u x n
+                // here we need a diadic product of u x n
                 for (int r=0;r<dimRange;++r)
                     for (int d=0;d<dimDomain;++d)
                         dvalue[r][d] = -0.5 * normal[d] * vuOut[r];
@@ -149,5 +198,6 @@ void assembleDGRHS ( const Model &model, DiscreteFunction &rhs )
     }
     rhs.communicate();
 }
+
 
 #endif //DUNE_DIFFUSIONFEM_RHS_HH
