@@ -432,7 +432,7 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
                     const double quadWeight = faceQuadInside.weight( pt );
                     const double weight = quadWeight * faceVol;
 
-                    //! [Assemble skeleton terms: obtain values om quadrature point]
+                    //! [Assemble skeleton terms: obtain values on quadrature point]
                     RangeType u0En;
                     JacobianRangeType u0EnJac;
                     uLocal.evaluate( faceQuadInside[ pt ], u0En );
@@ -483,6 +483,7 @@ void DifferentiableDGEllipticOperator< JacobianOperator, Model >
                         valueEn.axpy( beta, phi[ localCol ] );
 
                         valueNb.axpy(-beta, phiNb[ localCol ] );
+
                         // here we need a diadic product of u x n
                         for ( int r=0; r< dimRange; ++r )
                             for ( int d=0; d< dimDomain; ++d )

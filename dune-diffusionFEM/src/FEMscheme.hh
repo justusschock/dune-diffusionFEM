@@ -106,7 +106,7 @@ public:
     //! grid view (e.g. leaf grid view) provided in the template argument list
     typedef typename ModelType::GridPartType GridPartType;
 
-    //! type of underyling hierarchical grid needed for data output
+    //! type of underlying hierarchical grid needed for data output
     typedef typename GridPartType::GridType GridType;
 
     //! type of function space (scalar functions, \f$ f: \Omega -> R \f$)
@@ -141,7 +141,7 @@ public:
             // the elliptic operator (implicit)
               implicitOperator_( implicitModel_, discreteSpace_ ),
             // create linear operator (domainSpace,rangeSpace)
-              linearOperator_( "assempled elliptic operator", discreteSpace_, discreteSpace_ ),
+              linearOperator_( "assembled elliptic operator", discreteSpace_, discreteSpace_ ),
             // exact solution
               solverEps_(1e-12)
     {
@@ -154,7 +154,7 @@ public:
         return solution_;
     }
 
-    //! sotup the right hand side
+    //! setup the right hand side
     void prepare()
     {
         // assemble rhs

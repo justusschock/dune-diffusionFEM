@@ -23,10 +23,7 @@
 
 const bool graphics = true;
 
-
-//general form of Robin b.c.: a*u + b* du/dn = g on boundary of omega
-
-// -laplace u + u = f with Dirichlet and Neumann boundary conditions on domain [0,1]^d (now: Robin b.c.)
+// -laplace u + u = f with Dirichlet and Neumann boundary conditions
 // Exact solution is u(x_1,...,x_d) = cos(2*pi*x_1)...cos(2*pi*x_d)
 template <class FunctionSpace>
 class CosinusProduct : public ProblemInterface < FunctionSpace >
@@ -91,7 +88,7 @@ public:
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        u(x,value);
+        value = RangeType(1);
     }
     virtual bool hasDirichletBoundary () const
     {
@@ -110,15 +107,11 @@ public:
     virtual void n(const DomainType& x,
                    RangeType& value) const
     {
-        u(x,value);
-        value *= 0.5;
-        JacobianRangeType jac;
-        uJacobian(x,jac);
-        value[0] -= jac[0][0];
+        value = RangeType(1);
     }
 };
 
-// -laplace u = f with Dirichlet and Neumann boundary conditions on domain [0,1]^d (now: Robin b.c.)
+// -laplace u = f with Dirichlet and Neumann boundary conditions
 // Exact solution is u(x_1,...,x_d) = sin(2*pi*x_1)...sin(2*pi*x_d)
 template <class FunctionSpace>
 class SinusProduct : public ProblemInterface < FunctionSpace >
@@ -178,8 +171,8 @@ public:
         m = RangeType(1);
     }
 
-    //DomainType = Type of input variable (e.g const double)
-    //RangeType = Type of output variable (E.g. double)
+    //DomainType = Type of input variable (e.g const double) (in this case: x is point in domain)
+    //RangeType = Type of output variable (E.g. double) (in this case: value at x)
     virtual void alpha(const DomainType& x, RangeType &a) const
     {
         a = RangeType(0.5);
@@ -188,7 +181,7 @@ public:
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        u(x,value);
+        value = RangeType(1);
     }
     virtual bool hasDirichletBoundary () const
     {
@@ -207,11 +200,7 @@ public:
     virtual void n(const DomainType& x,
                    RangeType& value) const
     {
-        u(x,value);
-        value *= 0.5;
-        JacobianRangeType jac;
-        uJacobian(x,jac);
-        value[0] -= jac[0][0];
+        value = RangeType(1);
     }
 };
 
@@ -246,8 +235,8 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
             fullname << "sin_problem_step_" << step;
             break ;
         default:
-            problemPtr = new CosinusProduct< FunctionSpaceType > ();
-            fullname << "cos_problem_step_" << step;
+            problemPtr = new SinusProduct< FunctionSpaceType > ();
+            fullname << "sin_problem_step_" << step;
     }
     assert( problemPtr );
     ProblemType& problem = *problemPtr ;
@@ -261,6 +250,7 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
 
     typedef Dune::Fem::GridFunctionAdapter< ProblemType, GridPartType > GridExactSolutionType;
     GridExactSolutionType gridExactSolution("exact solution", problem, gridPart, 5 );
+
     //! input/output tuple and setup datawritter
     typedef Dune::tuple< const typename SchemeType::DiscreteFunctionType *, GridExactSolutionType * > IOTupleType;
     typedef Dune::Fem::DataOutput< HGridType, IOTupleType > DataOutputType;
