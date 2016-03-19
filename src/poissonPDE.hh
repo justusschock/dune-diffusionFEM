@@ -220,27 +220,26 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     typedef nonlinearModel< FunctionSpaceType, GridPartType > ModelType;
 
     typedef typename ModelType::ProblemType ProblemType ;
-    ProblemType* problemPtr = 0 ;
+    std::shared_ptr<ProblemType> problemPtr = 0 ;
     std::stringstream fullname;
     fullname << "poisson_";
 
     switch ( problemNumber )
     {
         case 0:
-            problemPtr = new CosinusProduct< FunctionSpaceType > ();
+            problemPtr.reset(new CosinusProduct< FunctionSpaceType >);
             fullname << "cos_problem_step_" << step;
             break ;
         case 1:
-            problemPtr = new SinusProduct< FunctionSpaceType > ();
+            problemPtr.reset(new SinusProduct< FunctionSpaceType >);
             fullname << "sin_problem_step_" << step;
             break ;
         default:
-            problemPtr = new SinusProduct< FunctionSpaceType > ();
+            problemPtr.reset(new SinusProduct< FunctionSpaceType >);
             fullname << "sin_problem_step_" << step;
     }
     assert( problemPtr );
-    ProblemType& problem = *problemPtr ;
-
+    ProblemType& problem = *problemPtr.get() ;
     // implicit model for left hand side
     ModelType implicitModel( problem, gridPart );
 
@@ -289,34 +288,54 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
 }
 
 template<class GridType>
-bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const int problemNumber)
+bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const double problemNumber)
 {
-    // refine grid
-    Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );
-
-    // setup EOC loop
-
-    // calculate first step
-    double oldError = INFINITY;
-
-    for( int step = 1; step <= repeats; ++step )
-    {
-        // refine globally such that grid with is bisected
-        // and all memory is adjusted correctly
-        Dune::Fem::GlobalRefine::apply( grid, refineSteps );
+    try {
 
 
+// refine grid
+        Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );
 
-        const double newError = algorithm( grid, step, problemNumber );
-        const double eoc = log( oldError / newError ) / M_LN2;
-        if( Dune::Fem::MPIManager::rank() == 0 )
+        // setup EOC loop
+
+        // calculate first step
+        double oldError = INFINITY;
+
+        for( int step = 1; step <= repeats; ++step )
         {
-            std::cout << "Error step " << step << " :" << newError << std::endl;
-            std::cout << "EOC( " << step <<"/"<< step-1 <<" ) = " << eoc << std::endl;
-        }
-        oldError = newError;
-    }
+            // refine globally such that grid with is bisected
+            // and all memory is adjusted correctly
+            Dune::Fem::GlobalRefine::apply( grid, refineSteps );
 
+
+
+            const double newError = algorithm( grid, step, problemNumber );
+            const double eoc = log( oldError / newError ) / M_LN2;
+            if( Dune::Fem::MPIManager::rank() == 0 )
+            {
+                std::cout << "Error step " << step << " :" << newError << std::endl;
+                std::cout << "EOC( " << step <<"/"<< step-1 <<" ) = " << eoc << std::endl;
+            }
+            oldError = newError;
+        }
+        return true;
+    }
+    catch (std::string &e){
+        std::cerr << e << std::endl;
+        return false;
+    }
+    catch (Dune::Exception &e){
+        std::cerr << "Dune reported error: " << e << std::endl;
+        return false;
+    }
+    catch (std::exception &e){
+        std::cerr << "STL reported error: " << e.what() << std::endl;
+        return false;
+    }
+    catch (...){
+        std::cerr << "Unknown exception thrown!" << std::endl;
+        return false;
+    }
 }
 
 #endif //DUNE_DIFFUSIONFEM_DIFFUSIONPDE_HH
