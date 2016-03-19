@@ -6,8 +6,8 @@ AC_CONFIG_SRCDIR([src/dune-diffusionfem.cc])
 AC_CONFIG_HEADERS([config.h])
 
 # we need no more than the standard DE-stuff
-# this module depends on dune-common dune-geometry dune-grid dune-localfunctions dune-istl dune-alugrid dune-fem
-# this implies checking for [dune-common], [dune-geometry], [dune-grid], [dune-localfunctions], [dune-istl], [dune-alugrid], [dune-spgrid], [dune-fem]
+# this module depends on dune-common dune-geometry dune-grid dune-alugrid dune-localfunctions dune-istl dune-fem
+# this implies checking for [dune-common], [dune-geometry], [dune-grid], [dune-alugrid], [dune-localfunctions], [dune-istl], [dune-spgrid], [dune-fem]
 DUNE_CHECK_ALL
 
 # implicitly set the Dune-flags everywhere
