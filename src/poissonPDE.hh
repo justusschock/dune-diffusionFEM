@@ -181,7 +181,7 @@ public:
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType(1);
+        value = RangeType(0);
     }
     virtual bool hasDirichletBoundary () const
     {
@@ -200,7 +200,12 @@ public:
     virtual void n(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType(1);
+        u(x,value);
+        value *= 0.5;
+        JacobianRangeType jac;
+        uJacobian(x,jac);
+        value[0] -= jac[0][0];
+
     }
 };
 
@@ -299,7 +304,7 @@ bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, con
         // setup EOC loop
 
         // calculate first step
-        double oldError = INFINITY;
+        double oldError = algorithm( grid, (repeats > 0) ? 0 : -1, problemNumber );
 
         for( int step = 1; step <= repeats; ++step )
         {

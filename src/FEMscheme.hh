@@ -1,8 +1,6 @@
 #ifndef DUNE_DIFFUSIONFEM_FEMSCHEME_HH
 #define DUNE_DIFFUSIONFEM_FEMSCHEME_HH
 
-#define POLORDER 3
-
 // iostream includes
 #include <iostream>
 

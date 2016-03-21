@@ -9,7 +9,7 @@
 
 #include "poissonPDE.hh"
 
-
+#define GRIDSELECTOR false
 
 int main(int argc, char** argv)
 {
@@ -20,58 +20,61 @@ int main(int argc, char** argv)
 
         const std::string problemNames [] = {"sin", "cos"};
 
-        /*const int dim = 3;
+        if(!GRIDSELECTOR) {
+            const int dim = 3;
 
-        Dune::FieldVector<double, dim> L(1.0);
-        Dune::array<int, dim> N (Dune::fill_array<int, dim>(1));
-        std::bitset<dim> B(false);
-        Dune::YaspGrid<dim> grid(L,N,B,false);
-*/
-        // append overloaded parameters from the command line
-        Dune::Fem::Parameter::append( argc, argv );
+            Dune::FieldVector<double, dim> L(1.0);
+            Dune::array<int, dim> N(Dune::fill_array<int, dim>(1));
+            std::bitset<dim> B(false);
+            Dune::YaspGrid<dim> grid(L, N, B, false);
 
-        // append possible given parameter files
-        for( int i = 1; i < argc; ++i )
-            Dune::Fem::Parameter::append( argv[ i ] );
+            solvePoissonPDE<Dune::YaspGrid<dim>>(grid, 2, 0, 2, 1);
 
-        // append default parameter file
-        Dune::Fem::Parameter::append( "/home/js/dune/dune-diffusionfem/data/parameter" );
+        }
+        else {
+            // append overloaded parameters from the command line
+            Dune::Fem::Parameter::append(argc, argv);
 
-        // type of hierarchical grid
-        typedef Dune::GridSelector::GridType  HGridType ;
+            // append possible given parameter files
+            for (int i = 1; i < argc; ++i)
+                Dune::Fem::Parameter::append(argv[i]);
 
-        // create grid from DGF file
-        const std::string gridkey = Dune::Fem::IOInterface::defaultGridKey( HGridType::dimension );
-        const std::string gridfile = Dune::Fem::Parameter::getValue< std::string >( gridkey );
+            // append default parameter file
+            Dune::Fem::Parameter::append("/home/js/dune/dune-diffusionfem/data/parameter");
 
-        // the method rank and size from MPIManager are static
-        if( Dune::Fem::MPIManager::rank() == 0 )
-            std::cout << "Loading macro grid: " << gridfile << std::endl;
+            // type of hierarchical grid
+            typedef Dune::GridSelector::GridType HGridType;
 
-        // construct macro using the DGF Parser
-        Dune::GridPtr< HGridType > gridPtr( gridfile );
-        HGridType& grid = *gridPtr ;
+            // create grid from DGF file
+            const std::string gridkey = Dune::Fem::IOInterface::defaultGridKey(HGridType::dimension);
+            const std::string gridfile = Dune::Fem::Parameter::getValue<std::string>(gridkey);
 
-        // do initial load balance
-        grid.loadBalance();
+            // the method rank and size from MPIManager are static
+            if (Dune::Fem::MPIManager::rank() == 0)
+                std::cout << "Loading macro grid: " << gridfile << std::endl;
 
-        // initial grid refinement
-        const int level = Dune::Fem::Parameter::getValue< int >( "poisson.level" );
+            // construct macro using the DGF Parser
+            Dune::GridPtr<HGridType> gridPtr(gridfile);
+            HGridType &grid = *gridPtr;
 
-        // number of global refinements to bisect grid width
-        const int refineStepsForHalf = Dune::DGFGridInfo< HGridType >::refineStepsForHalf();
+            // do initial load balance
+            grid.loadBalance();
 
-        // refine grid
-        grid.globalRefine( level * refineStepsForHalf );
+            // initial grid refinement
+            const int level = Dune::Fem::Parameter::getValue<int>("poisson.level");
 
-        const int repeats = Dune::Fem::Parameter::getValue< int >( "poisson.repeats", 0 );
+            // number of global refinements to bisect grid width
+            const int refineStepsForHalf = Dune::DGFGridInfo<HGridType>::refineStepsForHalf();
 
-        const int problemNumber = Dune::Fem::Parameter::getEnum("poisson.problem", problemNames, 0 );
+            // refine grid
+            grid.globalRefine(level * refineStepsForHalf);
 
+            const int repeats = Dune::Fem::Parameter::getValue<int>("poisson.repeats", 0);
+            const int problemNumber = Dune::Fem::Parameter::getEnum("poisson.problem", problemNames, 0);
 
-        solvePoissonPDE<HGridType>(grid, refineStepsForHalf, level, repeats, problemNumber);
-        
+            solvePoissonPDE<HGridType>(grid, refineStepsForHalf, level, repeats, problemNumber);
 
+        }
         return 0;
     }
 
