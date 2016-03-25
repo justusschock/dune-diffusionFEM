@@ -13,7 +13,7 @@ istl.preconditioning.relaxation: 1.2
 fem.preconditioning: true
 
 # macro grid files
-fem.io.macroGridFile_3d: ../data/unitcube-3d.dgf
+fem.io.macroGridFile_2d: ../data/unitcube-2d.dgf
 
 # path for output  
 fem.prefix: ../output
@@ -28,11 +28,11 @@ fem.io.partitioning: rank
 # level of initial global refinement 
 poisson.level: 0
 # number of EOC steps to be performed 
-poisson.repeats: 4
+poisson.repeats: 2
 # tolerance for linear solver 
 poisson.solvereps: 1e-12
 
-# valid are: cos | sin
+# valid are: cos | sin | middle
 poisson.problem: sin
 
 dg.penalty: 10

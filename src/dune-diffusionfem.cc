@@ -9,7 +9,7 @@
 
 #include "poissonPDE.hh"
 
-#define GRIDSELECTOR false
+#define GRIDSELECTOR true
 
 int main(int argc, char** argv)
 {
@@ -18,17 +18,17 @@ int main(int argc, char** argv)
         //Dune::MPIHelper& helper = Dune::MPIHelper::instance(argc, argv);
         Dune::Fem::MPIManager::initialize(argc, argv);
 
-        const std::string problemNames [] = {"sin", "cos"};
+        const std::string problemNames [] = {"sin", "cos", "middle"};
 
         if(!GRIDSELECTOR) {
-            const int dim = 3;
-
+            const int dim = 2;
+            typedef typename Dune::YaspGrid<dim> HGridType;
             Dune::FieldVector<double, dim> L(1.0);
             Dune::array<int, dim> N(Dune::fill_array<int, dim>(1));
             std::bitset<dim> B(false);
             Dune::YaspGrid<dim> grid(L, N, B, false);
 
-            solvePoissonPDE<Dune::YaspGrid<dim>>(grid, 2, 0, 2, 1);
+            solvePoissonPDE(grid, 2, 0, 2, 1);
 
         }
         else {
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
                 Dune::Fem::Parameter::append(argv[i]);
 
             // append default parameter file
-            Dune::Fem::Parameter::append("/home/js/dune/dune-diffusionfem/data/parameter");
+            Dune::Fem::Parameter::append("../data/parameter");
 
             // type of hierarchical grid
             typedef Dune::GridSelector::GridType HGridType;
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
             const int repeats = Dune::Fem::Parameter::getValue<int>("poisson.repeats", 0);
             const int problemNumber = Dune::Fem::Parameter::getEnum("poisson.problem", problemNames, 0);
 
-            solvePoissonPDE<HGridType>(grid, refineStepsForHalf, level, repeats, problemNumber);
+            solvePoissonPDE(grid, refineStepsForHalf, level, repeats, problemNumber);
 
         }
         return 0;

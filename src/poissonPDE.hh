@@ -21,6 +21,9 @@
 
 #include "problemInterface.hh"
 
+//include for data attaching
+#include "elementdata.hh"
+
 const bool graphics = true;
 
 // -laplace u + u = f with Dirichlet and Neumann boundary conditions
@@ -189,26 +192,94 @@ public:
     }
     virtual bool hasNeumanBoundary () const
     {
-        return true ;
+        return false ;
     }
     virtual bool isDirichletPoint( const DomainType& x ) const
     {
         // all boundaries except the x=0 plane are Dirichlet
-        return (std::abs(x[0])>1e-8);
+        return x[0]==1||x[1]==1;
 
     }
     virtual void n(const DomainType& x,
                    RangeType& value) const
     {
-        u(x,value);
+        /*u(x,value);
         value *= 0.5;
         JacobianRangeType jac;
         uJacobian(x,jac);
         value[0] -= jac[0][0];
+         */
+        value = RangeType(2);
 
     }
 };
 
+template<class FunctionSpace>
+class SingleMiddleSource: public ProblemInterface<FunctionSpace>{
+    typedef ProblemInterface < FunctionSpace >  BaseType;
+public:
+    typedef typename BaseType :: RangeType            RangeType;
+    typedef typename BaseType :: DomainType           DomainType;
+    typedef typename BaseType :: JacobianRangeType    JacobianRangeType;
+    typedef typename BaseType :: DiffusionTensorType  DiffusionTensorType;
+
+    enum { dimRange  = BaseType :: dimRange };
+    enum { dimDomain = BaseType :: dimDomain };
+
+    //! the right hand side data (default = 0)
+    virtual void f(const DomainType& x,
+                   RangeType& phi) const {
+        phi = 0;
+        if (x[0] == 0.5 && x[1] == 0.5)
+            phi = 10;
+    }
+
+    //! mass coefficient has to be 1 for this problem
+    virtual void m(const DomainType& x, RangeType &m) const
+    {
+        m = RangeType(1);
+    }
+
+    //DomainType = Type of input variable (e.g const double) (in this case: x is point in domain)
+    //RangeType = Type of output variable (E.g. double) (in this case: value at x)
+    virtual void alpha(const DomainType& x, RangeType &a) const
+    {
+        a = RangeType(0.5);
+    }
+    //! the Dirichlet boundary data (default calls u)
+    virtual void g(const DomainType& x,
+                   RangeType& value) const
+    {
+        value = RangeType(0);
+    }
+    virtual bool hasDirichletBoundary () const
+    {
+        return true ;
+    }
+    virtual bool hasNeumanBoundary () const
+    {
+        return false ;
+    }
+    virtual bool isDirichletPoint( const DomainType& x ) const
+    {
+        // all boundaries except the x=0 plane are Dirichlet
+        return x[0]==1||x[1]==1;
+
+    }
+    virtual void n(const DomainType& x,
+                   RangeType& value) const
+    {
+        /*u(x,value);
+        value *= 0.5;
+        JacobianRangeType jac;
+        uJacobian(x,jac);
+        value[0] -= jac[0][0];
+         */
+        value = RangeType(2);
+
+    }
+
+};
 
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
 template <class HGridType>
@@ -219,11 +290,10 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     GridPartType gridPart(grid);
 
     // use a scalar function space
-    typedef Dune::Fem::FunctionSpace< double, double,
-            HGridType::dimensionworld, 1 > FunctionSpaceType;
+    typedef Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 > FunctionSpaceType;
+
     // type of the mathematical model used
     typedef nonlinearModel< FunctionSpaceType, GridPartType > ModelType;
-
     typedef typename ModelType::ProblemType ProblemType ;
     std::shared_ptr<ProblemType> problemPtr = 0 ;
     std::stringstream fullname;
@@ -232,13 +302,17 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     switch ( problemNumber )
     {
         case 0:
-            problemPtr.reset(new CosinusProduct< FunctionSpaceType >);
-            fullname << "cos_problem_step_" << step;
-            break ;
-        case 1:
             problemPtr.reset(new SinusProduct< FunctionSpaceType >);
             fullname << "sin_problem_step_" << step;
             break ;
+        case 1:
+            problemPtr.reset(new CosinusProduct< FunctionSpaceType >);
+            fullname << "cos_problem_step_" << step;
+            break ;
+        case 2:
+            problemPtr.reset(new SingleMiddleSource<FunctionSpaceType>);
+            fullname << "single-middle-source_problem_step" << step;
+            break;
         default:
             problemPtr.reset(new SinusProduct< FunctionSpaceType >);
             fullname << "sin_problem_step_" << step;
@@ -288,11 +362,13 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
 
         vtkio.write(fullname.str(), Dune::VTK::appendedraw);
     }
-
+    problemPtr.reset();
     return error ;
 }
 
-template<class GridType>
+
+
+    template<class GridType>
 bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const double problemNumber)
 {
     try {
@@ -300,6 +376,8 @@ bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, con
 
 // refine grid
         Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );
+        //initialvalues<typename GridType::ctype, GridType::dimension> initial;
+        //elementdata(grid, initial);
 
         // setup EOC loop
 
