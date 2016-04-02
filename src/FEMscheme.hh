@@ -30,6 +30,7 @@
 
 // include parameter handling
 #include <dune/fem/io/parameter.hh>
+#include <dune/fem/space/common/interpolate.hh>
 
 // local includes
 #include "problemInterface.hh"
@@ -39,6 +40,7 @@
 #include "rhs.hh"
 
 #include "ellipticOperator.hh"
+#include "elementdata.hh"
 
 // ISTL is only working of LinearOperators with matrix representation
 #if HAVE_DUNE_ISTL && WANT_ISTL
@@ -94,7 +96,7 @@ private:
  *     Model::ProblemType boundary data, exact solution,
  *                        and the type of the function space
  *******************************************************************************/
-template < class Model >
+template < class Model, class FunctionType >
 class FemScheme
 {
 public:
@@ -130,7 +132,7 @@ public:
     typedef DifferentiableDGEllipticOperator< LinearOperatorType, ModelType > EllipticOperatorType;
 
     FemScheme( GridPartType &gridPart,
-               const ModelType& implicitModel )
+               const ModelType& implicitModel, FunctionType& initialValues )
             : implicitModel_( implicitModel ),
               gridPart_( gridPart ),
               discreteSpace_( gridPart_ ),
@@ -141,7 +143,9 @@ public:
             // create linear operator (domainSpace,rangeSpace)
               linearOperator_( "assembled elliptic operator", discreteSpace_, discreteSpace_ ),
             // exact solution
-              solverEps_(1e-12)
+              solverEps_(1e-12),
+            //initialvalues
+              initialValues_(initialValues)
     {
         // set all DoF to zero
         solution_.clear();
@@ -174,6 +178,8 @@ public:
         LinearInverseOperatorType invOp( linearOperator_, solverEps_, solverEps_ );
         // solve system
         invOp( rhs_, solution_ );
+
+        Dune::Fem::interpolate(initialValues_,solution_);
     }
 
 protected:
@@ -190,6 +196,8 @@ protected:
     LinearOperatorType linearOperator_;  // the linear operator (i.e. jacobian of the implicit)
 
     const double solverEps_ ; // eps for linear solver
+
+    const FunctionType& initialValues_;
 };
 
 

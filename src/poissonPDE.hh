@@ -23,6 +23,8 @@
 
 //include for data attaching
 #include "elementdata.hh"
+#include <dune/fem/space/common/interpolate.hh>
+#include <dune/fem/space/finitevolume.hh>
 
 const bool graphics = true;
 
@@ -184,7 +186,7 @@ public:
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType(0);
+        value = RangeType(100);
     }
     virtual bool hasDirichletBoundary () const
     {
@@ -197,7 +199,7 @@ public:
     virtual bool isDirichletPoint( const DomainType& x ) const
     {
         // all boundaries except the x=0 plane are Dirichlet
-        return x[0]==1||x[1]==1;
+        return (std::abs(x[0])>1e-8);
 
     }
     virtual void n(const DomainType& x,
@@ -230,8 +232,8 @@ public:
     virtual void f(const DomainType& x,
                    RangeType& phi) const {
         phi = 0;
-        if (x[0] == 0.5 && x[1] == 0.5)
-            phi = 10;
+        if (std::abs(x[0] - 0.5) <= 1e-6 && std::abs(x[1] - 0.5) <= 1e-6)
+            phi = 2;
     }
 
     //! mass coefficient has to be 1 for this problem
@@ -250,7 +252,7 @@ public:
     virtual void g(const DomainType& x,
                    RangeType& value) const
     {
-        value = RangeType(0);
+        value = RangeType(1);
     }
     virtual bool hasDirichletBoundary () const
     {
@@ -263,7 +265,7 @@ public:
     virtual bool isDirichletPoint( const DomainType& x ) const
     {
         // all boundaries except the x=0 plane are Dirichlet
-        return x[0]==1||x[1]==1;
+        return x[0]==1;
 
     }
     virtual void n(const DomainType& x,
@@ -282,8 +284,8 @@ public:
 };
 
 // assemble-solve-estimate-mark-refine-IO-error-doitagain
-template <class HGridType>
-double algorithm ( HGridType &grid, int step, const int problemNumber )
+template <class HGridType, class FunctionType>
+double algorithm ( HGridType &grid, int step, const int problemNumber, FunctionType& initialValues )
 {
     // we want to solve the problem on the leaf elements of the grid
     typedef Dune::Fem::AdaptiveLeafGridPart< HGridType > GridPartType;
@@ -323,8 +325,8 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
     ModelType implicitModel( problem, gridPart );
 
     // poisson solver
-    typedef FemScheme< ModelType > SchemeType;
-    SchemeType scheme( gridPart, implicitModel );
+    typedef FemScheme< ModelType, FunctionType > SchemeType;
+    SchemeType scheme( gridPart, implicitModel, initialValues );
 
     typedef Dune::Fem::GridFunctionAdapter< ProblemType, GridPartType > GridExactSolutionType;
     GridExactSolutionType gridExactSolution("exact solution", problem, gridPart, 5 );
@@ -368,21 +370,20 @@ double algorithm ( HGridType &grid, int step, const int problemNumber )
 
 
 
-    template<class GridType>
-bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const double problemNumber)
+template<class GridType, class FunctionType>
+bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, const int repeats, const double problemNumber, FunctionType& initialValues)
 {
     try {
-
-
-// refine grid
+        // refine grid
         Dune::Fem::GlobalRefine::apply( grid, level * refineSteps );
-        //initialvalues<typename GridType::ctype, GridType::dimension> initial;
+
+       // initialvalues<typename GridType::ctype, GridType::dimension> initial;
         //elementdata(grid, initial);
 
         // setup EOC loop
 
         // calculate first step
-        double oldError = algorithm( grid, (repeats > 0) ? 0 : -1, problemNumber );
+        double oldError = algorithm( grid, (repeats > 0) ? 0 : -1, problemNumber, initialValues );
 
         for( int step = 1; step <= repeats; ++step )
         {
@@ -392,7 +393,7 @@ bool solvePoissonPDE(GridType &grid, const int refineSteps, const int level, con
 
 
 
-            const double newError = algorithm( grid, step, problemNumber );
+            const double newError = algorithm( grid, step, problemNumber, initialValues );
             const double eoc = log( oldError / newError ) / M_LN2;
             if( Dune::Fem::MPIManager::rank() == 0 )
             {

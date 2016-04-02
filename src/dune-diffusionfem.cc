@@ -11,6 +11,22 @@
 
 #define GRIDSELECTOR true
 
+template <class FunctionSpaceType>
+class initialValues {
+
+public:
+
+    typedef typename FunctionSpaceType::DomainType DomainType;
+    typedef typename FunctionSpaceType::RangeType RangeType;
+
+    virtual void localFunction(const DomainType &x, RangeType &y) const {
+        y=10;
+        return;
+    }
+
+};
+
+
 int main(int argc, char** argv)
 {
     try{
@@ -20,6 +36,7 @@ int main(int argc, char** argv)
 
         const std::string problemNames [] = {"sin", "cos", "middle"};
 
+
         if(!GRIDSELECTOR) {
             const int dim = 2;
             typedef typename Dune::YaspGrid<dim> HGridType;
@@ -27,8 +44,10 @@ int main(int argc, char** argv)
             Dune::array<int, dim> N(Dune::fill_array<int, dim>(1));
             std::bitset<dim> B(false);
             Dune::YaspGrid<dim> grid(L, N, B, false);
+            typedef Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 > FunctionSpaceType;
+            initialValues<FunctionSpaceType> initial;
 
-            solvePoissonPDE(grid, 2, 0, 2, 1);
+            solvePoissonPDE(grid, 2, 0, 2, 1, initial);
 
         }
         else {
@@ -72,7 +91,10 @@ int main(int argc, char** argv)
             const int repeats = Dune::Fem::Parameter::getValue<int>("poisson.repeats", 0);
             const int problemNumber = Dune::Fem::Parameter::getEnum("poisson.problem", problemNames, 0);
 
-            solvePoissonPDE(grid, refineStepsForHalf, level, repeats, problemNumber);
+            typedef Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 > FunctionSpaceType;
+            initialValues<FunctionSpaceType> initial;
+
+            solvePoissonPDE(grid, refineStepsForHalf, level, repeats, problemNumber, initial);
 
         }
         return 0;

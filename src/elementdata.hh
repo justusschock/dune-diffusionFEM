@@ -8,7 +8,7 @@ class initialvalues {
 
 protected:
     virtual double f(const Dune::FieldVector<ct,dim> &x) const{
-        return 0;
+        return 6;
     }
 
 public:
