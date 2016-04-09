@@ -6,29 +6,57 @@
 #include <iostream>
 #include <array>
 #include <dune/fem/misc/mpimanager.hh>
+#include <dune/fem/function/common/localfunctionadapter.hh>
+#include <functional>
 
 #include "poissonPDE.hh"
 
-#define GRIDSELECTOR true
+#define GRIDSELECTOR false
 
-template <class FunctionSpaceType>
-class initialValues {
+
+
+template<class FunctionSpace>
+class initialLocalFunction
+{
+    typedef initialLocalFunction< FunctionSpace > ThisType;
+
+    static const int dimDomain = FunctionSpace::dimDomain;
+    static const int dimRange = FunctionSpace::dimRange;
 
 public:
-
+    typedef FunctionSpace FunctionSpaceType;
     typedef typename FunctionSpaceType::DomainType DomainType;
     typedef typename FunctionSpaceType::RangeType RangeType;
+    typedef typename FunctionSpaceType::JacobianRangeType JacobianRangeType;
 
-    virtual void localFunction(const DomainType &x, RangeType &y) const {
-        y=10;
-        return;
+    void evaluate ( const DomainType &x, RangeType &value ) const
+    {
+        value = RangeType( 2 );
     }
 
+    void jacobian ( const DomainType &x, JacobianRangeType &jacobian ) const
+    {
+        jacobian = JacobianRangeType( 0 );
+    }
 };
 
+template<class DiscreteFunctionSpaceImp>
+class init{
+public:
+    using RangeType = typename DiscreteFunctionSpaceImp::FunctionSpaceType::RangeType;
+    using DomainType = typename DiscreteFunctionSpaceImp::FunctionSpaceType::DomainType;
+    using EntityType = typename DiscreteFunctionSpaceImp::EntityType;
+
+    RangeType operator()(const DomainType& x, const double& y, const EntityType& z)
+    {
+        return RangeType(2);
+    }
+};
 
 int main(int argc, char** argv)
 {
+
+
     try{
         // Maybe initialize MPI
         //Dune::MPIHelper& helper = Dune::MPIHelper::instance(argc, argv);
@@ -38,16 +66,55 @@ int main(int argc, char** argv)
 
 
         if(!GRIDSELECTOR) {
+            // Default Grid-Setup
             const int dim = 2;
             typedef typename Dune::YaspGrid<dim> HGridType;
             Dune::FieldVector<double, dim> L(1.0);
             Dune::array<int, dim> N(Dune::fill_array<int, dim>(1));
             std::bitset<dim> B(false);
             Dune::YaspGrid<dim> grid(L, N, B, false);
-            typedef Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 > FunctionSpaceType;
-            initialValues<FunctionSpaceType> initial;
 
-            solvePoissonPDE(grid, 2, 0, 2, 1, initial);
+
+            //Typedefs for initial Values
+            //for all Versions
+            using GridPartType = typename Dune::Fem::AdaptiveLeafGridPart<HGridType>;
+            using FunctionSpace = Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 >;
+            std::string initialname = "constant_values";
+            GridPartType gridPart (grid);
+
+            //Version 1:
+            using DiscreteFunctionSpace = Dune::Fem::DiscreteFunctionSpaceAdapter<FunctionSpace , GridPartType >;
+            using RangeType = DiscreteFunctionSpace ::FunctionSpaceType::RangeType;
+            using DomainType = DiscreteFunctionSpace ::FunctionSpaceType::DomainType;
+            using EntityType = DiscreteFunctionSpace ::EntityType;
+            using localfunction = std::function<RangeType(const DomainType&, const double& ,const EntityType&)>;
+            using LocalFunctionImp = Dune::Fem::LocalAnalyticalFunctionBinder<DiscreteFunctionSpace, localfunction >;
+            using initialValues = Dune::Fem::LocalFunctionAdapter<LocalFunctionImp >;
+
+            localfunction func = init<DiscreteFunctionSpace >();
+            LocalFunctionImp funcImp(func);
+            initialValues initial(initialname,funcImp,gridPart);
+            solvePoissonPDE(grid, 2, 0, 2, 0, initial);
+
+            /* //Version 2:
+            using initialFunc = initialLocalFunction<FunctionSpace>;
+            using initialValues = Dune::Fem::GridFunctionAdapter<initialFunc, GridPartType>;
+            initialFunc initialFunction;
+            initialValues initial(initialname,initialFunction,gridPart);
+            solvePoissonPDE(grid, 2, 0, 2, 0, initial);
+             */
+
+            /*
+            //Version 3 (without interpolate):
+            DiscreteFunctionSpace dfSpace(gridPart);
+            DiscreteFunctionSpace::IteratorType end =dfSpace.end();
+            for(DiscreteFunctionSpace::IteratorType it = dfSpace.begin(); it!= end; ++it)
+            {
+                const DiscreteFunctionSpace::EntityType& entity = *it;
+                auto localfunction = initial.localFunction(entity);
+                localfunction[0] = 0;
+            }
+*/
 
         }
         else {
@@ -92,9 +159,9 @@ int main(int argc, char** argv)
             const int problemNumber = Dune::Fem::Parameter::getEnum("poisson.problem", problemNames, 0);
 
             typedef Dune::Fem::FunctionSpace< double, double, HGridType::dimensionworld, 1 > FunctionSpaceType;
-            initialValues<FunctionSpaceType> initial;
+            //initialValues<FunctionSpaceType, HGridType> initial;
 
-            solvePoissonPDE(grid, refineStepsForHalf, level, repeats, problemNumber, initial);
+            //solvePoissonPDE(grid, refineStepsForHalf, level, repeats, problemNumber, initial);
 
         }
         return 0;
