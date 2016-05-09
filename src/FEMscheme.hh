@@ -179,7 +179,11 @@ public:
         // solve system
         invOp( rhs_, solution_ );
 
-        Dune::Fem::interpolate(initialValues_,solution_);
+       // Dune::Fem::interpolate(initialValues_,solution_);
+    }
+    void init ( )
+    {
+               Dune::Fem::interpolate(initialValues_,solution_);
     }
 
 protected:

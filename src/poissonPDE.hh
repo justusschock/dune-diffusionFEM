@@ -336,11 +336,11 @@ double algorithm ( HGridType &grid, int step, const int problemNumber, FunctionT
     typedef Dune::Fem::DataOutput< HGridType, IOTupleType > DataOutputType;
     IOTupleType ioTuple( &(scheme.solution()), &gridExactSolution) ; // tuple with pointers
     DataOutputType dataOutput( grid, ioTuple, DataOutputParameters( step ) );
-
+scheme.init();
     // setup the right hand side
-    scheme.prepare();
+   // scheme.prepare();
     // solve once (assemble matrix)
-    scheme.solve(true);
+    //scheme.solve(true);
 
     // write initial solve
     dataOutput.write("~/ISEA/build/DiffusionTest/dune-diffusionFEM/src/test");

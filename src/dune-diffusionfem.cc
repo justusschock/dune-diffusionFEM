@@ -82,7 +82,7 @@ int main(int argc, char** argv)
             std::string initialname = "constant_values";
             GridPartType gridPart (grid);
 
-            //Version 1:
+            /*//Version 1:
             using DiscreteFunctionSpace = Dune::Fem::DiscreteFunctionSpaceAdapter<FunctionSpace , GridPartType >;
             using RangeType = DiscreteFunctionSpace ::FunctionSpaceType::RangeType;
             using DomainType = DiscreteFunctionSpace ::FunctionSpaceType::DomainType;
@@ -95,14 +95,15 @@ int main(int argc, char** argv)
             LocalFunctionImp funcImp(func);
             initialValues initial(initialname,funcImp,gridPart);
             solvePoissonPDE(grid, 2, 0, 2, 0, initial);
+             */
 
-            /* //Version 2:
+            //Version 2:
             using initialFunc = initialLocalFunction<FunctionSpace>;
             using initialValues = Dune::Fem::GridFunctionAdapter<initialFunc, GridPartType>;
             initialFunc initialFunction;
             initialValues initial(initialname,initialFunction,gridPart);
             solvePoissonPDE(grid, 2, 0, 2, 0, initial);
-             */
+
 
             /*
             //Version 3 (without interpolate):
